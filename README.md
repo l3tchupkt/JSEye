@@ -1,219 +1,128 @@
-# JSEye 👁️
-**JavaScript Intelligence & Attack Surface Discovery Engine**
+# JSEye v3.0 - Ultimate JavaScript Intelligence & Attack Surface Discovery Engine
 
 <img width="1536" height="1024" alt="JSEye Banner" src="https://github.com/user-attachments/assets/70359cd0-ada8-4f44-a01f-81b9841d8556" />
 
-JSEye is a production-grade Python framework for comprehensive JavaScript security analysis and attack surface discovery. Built for bug bounty hunters, penetration testers, and security researchers who need deep JavaScript intelligence with minimal noise.
+<div align="center">
+  <img src="https://img.shields.io/badge/Python-3.8%2B-blue.svg" alt="Python Version"/>
+  <img src="https://img.shields.io/badge/Status-Production--Ready-brightgreen" alt="Status"/>
+  <img src="https://img.shields.io/badge/License-MIT-blue" alt="License"/>
+</div>
 
-## 🚀 Features
+JSEye is an enterprise-grade, fully automated attack surface discovery and JavaScript analysis engine designed for elite bug bounty hunters and red teamers. 
 
-- **Plugin Architecture**: Modular design with extensible plugin system
-- **Multi-Engine Analysis**: AST parsing, DOM flow analysis, secret detection, and CVE intelligence
-- **Advanced Secret Detection**: Context-aware detection with risk scoring and confidence analysis
-- **API Intelligence**: Automated endpoint discovery and security assessment
-- **Attack Surface Mapping**: Visual graph generation of application attack surface
-- **Professional Reports**: Beautiful HTML and structured JSON reports
-- **Cross-Platform**: Works on Linux, macOS, and Windows
-- **Zero Dependencies**: Pure Python implementation with optional external integrations
+Going far beyond simple regex crawling, JSEye silently orchestrates a high-performance, 6-tool Go pipeline (`gau`, `waybackurls`, `hakrawler`, `subfinder`, `katana`, `mantra`) combined with headless browser rendering and **Abstract Syntax Tree (AST)**-level parsing. It automatically extracts hidden endpoints, hardcoded credentials, obsolete library CVEs, and Swagger/OpenAPI specifications from deeply obfuscated and minified JavaScript.
 
-## 📦 Installation
+---
 
-### From PyPI (Recommended)
+## ⚡ Zero-Touch Automated Setup
+
+Forget manually configuring binary paths and installing dependencies. **JSEye handles its own environment.**
+
+On your first run, JSEye performs a pre-flight check across Linux, Windows, and macOS. If any required external OS tools are missing, it natively compiles and installs them via Go before the scan even begins.
+
+### Installation
+
+JSEye natively bundles its requirements into a clean `pip` package. Install globally in seconds:
+
 ```bash
 pip install jseye
 ```
 
-### Verify Installation
+*Required: Python 3.8+. Go is recommended for the initial transparent tool installation pipeline.*
+
+---
+
+## 🧠 Core Capabilities
+
+- **Zero-Touch Tool Orchestration**: Installs and multiplexes `subfinder`, `katana`, `gau`, `waybackurls`, `hakrawler`, and `mantra` asynchronously.
+- **Deep JS AST Analysis**: Employs headless browser rendering and AST decomposition to extract dynamically loaded parameters and endpoints that defeat standard static regex parsing.
+- **Swagger / OpenAPI Mapping**: Scans over 200+ known endpoints and dynamically parses OpenAPI/Swagger specifications (v2/v3), yielding fully qualified API routes directly from the target infrastructure.
+- **Vulnerability & CVE Mapping**: Identifies obsolete library versions mapping them dynamically to CVSS/CVE databases (NVD/OSV).
+- **Intelligent Noise Filtering**: Context-aware prioritization engine filters out "dead" frameworks and focuses only on high-value, actionable assets.
+- **Advanced Export Engineering**: Generates immediate tactical outputs: ffuf brute-force configurations, cURL pipelines, Burp Suite XML sitemaps, and custom Nuclei templates.
+- **Interactive Reporting**: Generates sleek, filterable JSON and HTML reports, including an Executive Summary for compliance tracking.
+
+---
+
+## 🏗️ Deep Architecture Pipeline
+
+JSEye executes in an 8-phase parallelized pipeline to maximize speed and coverage.
+
+```mermaid
+graph TD
+    A[Input Target] --> B[Tool Installer Pre-Flight]
+    B --> C{Verify & Auto-Install Missing Go Tools}
+    C -->|subfinder, katana, gau...| D[Parallel Discovery Phase]
+    D --> E[SubFinder & Katana Dynamic Crawls]
+    D --> F[Archive/Wayback Historical Fetch]
+    D --> G[Hakrawler Depth Scan]
+    E --> H[Consolidated JS Files]
+    F --> H
+    G --> H
+    H --> I[AST & Regex Parsers]
+    I --> J[Secret Detection Engine / Mantra]
+    I --> K[Swagger/API Extractor]
+    I --> L[Vulnerability / CVE Engine]
+    J --> M[Prioritization Engine]
+    K --> M
+    L --> M
+    M --> N[Exporters: Wordlists, Nuclei, ffuf, cURL]
+    M --> O[Interactive HTML & JSON Reports]
+```
+
+
+
+---
+
+## 🎯 Advanced Usage & Scenarios
+
+JSEye works seamlessly against a single host, an entire CIDR, or a local file folder of previously scraped assets.
+
+### Basic Reconnaissance
+Execute a highly optimized scan with smart defaults (ideal for initial recon):
 ```bash
-jseye --version
+jseye target.com
 ```
 
-## 🛠️ Requirements
-
-- **Python 3.8+** (core functionality)
-- **Optional**: Selenium WebDriver (for headless browser analysis)
-- **Optional**: External APIs (for enhanced CVE intelligence)
-
-JSEye works out of the box with zero configuration required.
-
-## 🎯 Usage
-
-### Basic Scanning
+### Ultimate Hunter Mode (`--all`)
+Enable every specialized crawler, headless browser rendering, exhaustive API finding, AST parsing, and automatically generate all export formats (Nuclei, ffuf, etc.) in one command:
 ```bash
-# Scan a single target
-jseye example.com
-
-# Scan with custom output
-jseye example.com --output results.json
-
-# Scan multiple targets
-jseye target1.com target2.com target3.com
+jseye target.com --all
 ```
 
-### Advanced Options
+### Actionable & Aggressive Filtering
+Focus only on high-fidelity, exploitable findings (removes 95% of standard framework noise):
 ```bash
-# Enable all analysis engines
-jseye example.com --threads 20 --timeout 30
-
-# Generate HTML report
-jseye example.com --output report.html --format html
-
-# Enable headless browser analysis
-jseye example.com --headless
-
-# Custom configuration
-jseye example.com --config custom_config.json
+jseye target.com --actionable --aggressive-filter
 ```
 
-### Plugin Management
+### Continuous Attack Surface Monitoring (CI/CD)
+Compare a fresh scan against a baseline report to spot newly added endpoints, APIs, or leaked secrets in real-time. Extremely powerful when running in cron jobs:
 ```bash
-# List available plugins
-jseye --list-plugins
-
-# Enable specific plugins
-jseye example.com --enable-plugin secret_detection
-
-# Disable plugins
-jseye example.com --disable-plugin cve_intelligence
+jseye target.com --compare previous_report.json --json --silent
 ```
 
-## 🔄 Analysis Pipeline
-
-JSEye executes a comprehensive multi-stage analysis:
-
-```
-Target Domain
-     ↓
-🕷️ JavaScript Discovery & Collection
-     ↓
-🧠 AST Analysis & Code Parsing
-     ↓
-🔐 Secret Detection & Risk Assessment
-     ↓
-🌊 DOM Flow Analysis & XSS Detection
-     ↓
-🔍 API Endpoint Discovery
-     ↓
-🛡️ CVE Intelligence & Vulnerability Assessment
-     ↓
-📊 Attack Surface Graph Generation
-     ↓
-📋 Professional Report Generation
-```
-
-## 📁 Output Structure
-
-```
-output/
-├── jseye_report.html              # Beautiful HTML report
-├── jseye_report.json              # Structured JSON data
-├── attack_surface_graph.png       # Visual attack surface map
-├── secrets_detailed.json          # Detailed secret analysis
-├── api_endpoints.json             # Discovered API endpoints
-├── vulnerabilities.json           # CVE and security issues
-├── dom_flows.json                 # XSS and DOM analysis
-└── scan_metadata.json            # Scan statistics and metadata
-```
-
-## 🎨 Terminal Output
-
-JSEye provides rich, informative terminal output:
-
-```
-     ____.  ____________________
-    |    | /   _____/\_   _____/___.__.  ____
-    |    | \_____  \  |    __)_<   |  |_/ __ \
-/\__|    | /        \ |        \\___  |\  ___/
-\________|/_______  //_______  // ____| \___  >
-                  \/         \/ \/          \/
-
-        JSEye v2.0 - JavaScript Intelligence Engine
-        Author: Lakshmikanthan K (@letchupkt)
-
-[+] Target: example.com
-[+] Initializing plugin system...
-[+] Loading 4 analysis plugins
-[+] Discovering JavaScript files...
-[+] Found 127 JavaScript files (2.3 MB)
-[+] Running AST analysis...
-[+] Detecting secrets and credentials...
-[+] Analyzing DOM flows for XSS...
-[+] Discovering API endpoints...
-[+] Checking CVE intelligence...
-[+] Generating attack surface graph...
-[+] Creating professional reports...
-
-──────── JSEye Analysis Summary ────────
-JavaScript Files  : 127
-Secrets Found     : 8 (3 high-risk)
-API Endpoints     : 23
-XSS Vectors       : 5
-CVE Matches       : 2
-Risk Score        : 75/100 (High)
-Report Generated  : jseye_report.html
-─────────────────────────────────────────
-```
-
-## 🧠 Smart Features
-
-### Context-Aware Secret Detection
-JSEye uses advanced algorithms to detect secrets with:
-- **Risk Scoring**: 0-100 scale based on context and entropy
-- **False Positive Reduction**: Smart filtering of test/dummy credentials
-- **Context Analysis**: Understanding of code context and usage patterns
-
-### DOM Flow Analysis
-Comprehensive XSS detection through:
-- **Source-to-Sink Mapping**: Tracks data flow from user input to dangerous sinks
-- **Pattern Recognition**: Identifies common XSS patterns and bypasses
-- **Confidence Scoring**: Rates findings based on exploitability
-
-### API Intelligence
-Automated API discovery and security assessment:
-- **Endpoint Enumeration**: Discovers REST and GraphQL endpoints
-- **Parameter Analysis**: Identifies required and optional parameters
-- **Security Headers**: Checks for proper security configurations
-
-### Attack Surface Visualization
-Generates visual graphs showing:
-- **Component Relationships**: How different parts of the application connect
-- **Data Flow Paths**: Routes that user data takes through the application
-- **Risk Hotspots**: Areas with the highest security risk concentration
-
-## 🔧 Configuration
-
-### Custom Configuration File
-```json
-{
-  "threads": 10,
-  "timeout": 30,
-  "plugins": {
-    "secret_detection": {
-      "enabled": true,
-      "min_confidence": 0.7
-    },
-    "dom_flow_analysis": {
-      "enabled": true,
-      "check_xss": true
-    },
-    "cve_intelligence": {
-      "enabled": true,
-      "api_timeout": 10
-    }
-  },
-  "output": {
-    "format": "html",
-    "include_graphs": true,
-    "verbose": true
-  }
-}
-```
-
-### Environment Variables
+### Exporting Tactical Artifacts
+Generate specific outputs for downstream toolchains:
 ```bash
-export JSEYE_THREADS=20
-export JSEYE_TIMEOUT=60
-export JSEYE_OUTPUT_DIR=/custom/output/path
+# Generate a Nuclei template for custom fuzzing
+jseye target.com --export-nuclei custom_nuclei.yaml
+
+# Generate ffuf commands tailored to the discovered parameters
+jseye target.com --export-ffuf ffuf_commands.sh
+
+# Export a Burp Suite sitemap for manual API testing
+jseye target.com --export-burp sitemap.xml
+```
+
+### Speed & Stealth Operations
+Bypass heavy sub-processors to maintain stealth or dramatically increase speed:
+```bash
+# Provide multiple targets via file, disable historical archive scraping
+jseye targets.txt --no-gau --no-wayback
+
+# Run silently for direct file output parsing
+jseye targets.txt --silent -o /tmp/jseye_out/
 ```
 
 ## 📊 Report Features
@@ -229,22 +138,6 @@ export JSEYE_OUTPUT_DIR=/custom/output/path
 - **Complete Metadata**: Timestamps, versions, and scan parameters
 - **Nested Analysis**: Hierarchical organization of findings
 - **API-Friendly**: Easy integration with other security tools
-
-## 🔌 Plugin Development
-
-JSEye supports custom plugin development:
-
-```python
-from jseye.plugins.base import BasePlugin
-
-class CustomAnalysisPlugin(BasePlugin):
-    name = "custom_analysis"
-    version = "1.0.0"
-    
-    async def analyze(self, js_content, metadata):
-        # Your custom analysis logic
-        return findings
-```
 
 ## 📄 License
 
@@ -270,4 +163,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**JSEye v2.0** - See what JavaScript hides. 👁️
+**JSEye v3.0** - See what JavaScript hides. 👁️
