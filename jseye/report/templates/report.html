@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSEye Security Report - {{ target }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Professional Enterprise Palette */
+            --bg-body: #f1f5f9;
+            --bg-surface: #ffffff;
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            
+            /* Status Colors */
+            --critical-color: #ef4444;
+            --high-color: #f97316;
+            --medium-color: #f59e0b;
+            --low-color: #10b981;
+            --info-color: #3b82f6;
+            
+            /* Text & Borders */
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --border-light: #f1f5f9;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-main);
+            background: var(--bg-body);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 40px 48px;
+            border-radius: 12px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-md);
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+        
+        .header .subtitle {
+            font-size: 1.1em;
+            color: #94a3b8;
+            font-weight: 400;
+            margin-bottom: 24px;
+        }
+        
+        .header .target-info {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: inline-block;
+            min-width: 50%;
+        }
+        
+        .header .target-info h2 {
+            font-size: 1.5em;
+            margin-bottom: 12px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .header .meta-info {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        
+        .header .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9em;
+            color: #cbd5e1;
+        }
+        
+        /* Summary Grid */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .summary-card {
+            background: var(--bg-surface);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .summary-card h3 {
+            color: var(--text-muted);
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .summary-card .number {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.2;
+        }
+        
+        .summary-card .label {
+            color: var(--text-muted);
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        
+        /* Colors */
+        .critical { color: var(--critical-color); }
+        .high { color: var(--high-color); }
+        .medium { color: var(--medium-color); }
+        .low { color: var(--low-color); }
+        .info { color: var(--info-color); }
+        
+        /* Sections */
+        .section {
+            background: var(--bg-surface);
+            margin-bottom: 32px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+        
+        .section-header {
+            background: var(--bg-surface);
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .section-header h2 {
+            color: var(--text-main);
+            font-size: 1.25em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-content {
+            padding: 24px;
+        }
+        
+        /* Risk Chart */
+        .risk-chart {
+            display: flex;
+            height: 32px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 20px 0;
+            background: var(--border-light);
+        }
+        
+        .risk-segment {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85em;
+            transition: opacity 0.3s ease;
+        }
+        
+        .risk-segment:hover {
+            opacity: 0.9;
+        }
+        
+        .risk-segment.critical { background: var(--critical-color); }
+        .risk-segment.high { background: var(--high-color); }
+        .risk-segment.medium { background: var(--medium-color); }
+        .risk-segment.low { background: var(--low-color); }
+        
+        /* Tables */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+        
+        .table th,
+        .table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+        
+        .table th {
+            background: var(--bg-body);
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .badge-critical { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .badge-high { background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; }
+        .badge-medium { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .badge-low { background: #d1fae5; color: #047857; border: 1px solid #a7f3d0; }
+        .badge-info { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        
+        /* Code Blocks */
+        .code {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+            overflow-x: auto;
+            margin: 12px 0;
+            border: 1px solid #0f172a;
+        }
+        
+        /* Expandable Rows */
+        .expandable {
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s ease;
+        }
+        
+        .expandable:hover {
+            background-color: var(--bg-body);
+        }
+        
+        .expandable::after {
+            content: '▼';
+            float: right;
+            transition: transform 0.3s ease;
+            color: var(--text-muted);
+            font-size: 0.8em;
+            margin-top: 4px;
+        }
+        
+        .expandable.expanded {
+            background-color: var(--bg-body);
+        }
+        
+        .expandable.expanded::after {
+            transform: rotate(180deg);
+        }
+        
+        .expanded-content {
+            display: none;
+            padding: 24px;
+            background: var(--bg-body);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            color: var(--text-muted);
+            font-size: 0.9em;
+        }
+        
+        .tab:hover {
+            color: var(--text-main);
+        }
+        
+        .tab.active {
+            border-bottom-color: var(--info-color);
+            color: var(--info-color);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Alerts */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin: 0 0 20px 0;
+            border-left: 4px solid;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+        
+        .alert-critical { background: #fef2f2; border-color: var(--critical-color); color: #991b1b; }
+        .alert-warning { background: #fffbeb; border-color: var(--medium-color); color: #92400e; }
+        .alert-info { background: #eff6ff; border-color: var(--info-color); color: #1e40af; }
+        .alert-success { background: #f0fdf4; border-color: var(--low-color); color: #166534; }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-item {
+            background: var(--bg-body);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .stat-item h4 {
+            color: var(--text-muted);
+            font-size: 0.85em;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+        
+        /* Watermark & Footer */
+        .footer {
+            text-align: center;
+            padding: 32px;
+            color: var(--text-muted);
+            font-size: 0.9em;
+            margin-top: 40px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin: 16px 0;
+        }
+        
+        .footer-links a {
+            color: var(--info-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .watermark {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .watermark a {
+            color: #93c5fd;
+            text-decoration: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header { padding: 32px 20px; }
+            .header h1 { font-size: 1.8em; }
+            .summary-grid { grid-template-columns: 1fr 1fr; }
+            .section-content { padding: 16px; }
+            .watermark {
+                position: static;
+                display: block;
+                text-align: center;
+                width: fit-content;
+                margin: 20px auto;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .summary-grid { grid-template-columns: 1fr; }
+        }
+        
+        @media print {
+            .watermark { display: none; }
+            .expandable::after { display: none; }
+            .expanded-content { display: table-cell !important; }
+            body { background: white; }
+            .section { box-shadow: none; border: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>JSEye Security Report</h1>
+            <div class="subtitle">JavaScript Intelligence & Attack Surface Discovery Engine</div>
+            <div class="target-info">
+                <h2>{{ target }}</h2>
+                <div class="meta-info">
+                    <div class="meta-item">
+                        <span>📅</span>
+                        <span>{{ generated_at }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span>🔧</span>
+                        <span>JSEye v{{ jseye_version }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span>[*]</span>
+                        <span>Report v{{ report_version }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-card">
+                <h3>JavaScript Files</h3>
+                <div class="number info">{{ summary.total_js_files }}</div>
+                <div class="label">Files Analyzed</div>
+            </div>
+            <div class="summary-card">
+                <h3>Secrets Found</h3>
+                <div class="number critical">{{ summary.total_secrets_found }}</div>
+                <div class="label">Potential Secrets</div>
+            </div>
+            <div class="summary-card">
+                <h3>API Endpoints</h3>
+                <div class="number info">{{ summary.total_endpoints_discovered }}</div>
+                <div class="label">Endpoints Discovered</div>
+            </div>
+            <div class="summary-card">
+                <h3>Risk Score</h3>
+                <div class="number {{ summary.overall_risk_level.lower() }}">{{ summary.risk_score }}</div>
+                <div class="label">{{ summary.overall_risk_level }} Risk</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>Risk Assessment & Distribution</h2>
+            </div>
+            <div class="section-content">
+                {% if summary.risk_score >= 80 %}
+                <div class="alert alert-critical">
+                    <strong>Critical Risk Detected:</strong> This application has a high risk score of {{ summary.risk_score }}. Immediate security attention is required.
+                </div>
+                {% elif summary.risk_score >= 50 %}
+                <div class="alert alert-warning">
+                    <strong>High Risk:</strong> This application has elevated security risks (Score: {{ summary.risk_score }}). Review and remediation recommended.
+                </div>
+                {% elif summary.risk_score >= 20 %}
+                <div class="alert alert-info">
+                    <strong>Moderate Risk:</strong> Some security concerns identified (Score: {{ summary.risk_score }}). Consider addressing the findings.
+                </div>
+                {% else %}
+                <div class="alert alert-success">
+                    <strong>Low Risk:</strong> Good security posture detected (Score: {{ summary.risk_score }}). Continue monitoring for best practices.
+                </div>
+                {% endif %}
+                
+                <div class="risk-chart">
+                    {% set total_risks = statistics.risk_distribution.Critical + statistics.risk_distribution.High + statistics.risk_distribution.Medium + statistics.risk_distribution.Low %}
+                    {% if total_risks > 0 %}
+                        {% if statistics.risk_distribution.Critical > 0 %}
+                            <div class="risk-segment critical" style="width: {{ (statistics.risk_distribution.Critical / total_risks * 100)|round(1) }}%">
+                                {{ statistics.risk_distribution.Critical }} Critical
+                            </div>
+                        {% endif %}
+                        {% if statistics.risk_distribution.High > 0 %}
+                            <div class="risk-segment high" style="width: {{ (statistics.risk_distribution.High / total_risks * 100)|round(1) }}%">
+                                {{ statistics.risk_distribution.High }} High
+                            </div>
+                        {% endif %}
+                        {% if statistics.risk_distribution.Medium > 0 %}
+                            <div class="risk-segment medium" style="width: {{ (statistics.risk_distribution.Medium / total_risks * 100)|round(1) }}%">
+                                {{ statistics.risk_distribution.Medium }} Medium
+                            </div>
+                        {% endif %}
+                        {% if statistics.risk_distribution.Low > 0 %}
+                            <div class="risk-segment low" style="width: {{ (statistics.risk_distribution.Low / total_risks * 100)|round(1) }}%">
+                                {{ statistics.risk_distribution.Low }} Low
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="risk-segment low" style="width: 100%; background: var(--low-color);">No Security Risks Detected</div>
+                    {% endif %}
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; font-size: 0.9em; font-weight: 500; color: var(--text-muted); margin-top: 16px; flex-wrap: wrap; gap: 12px;">
+                    <span><span style="color: var(--critical-color);">●</span> Critical: {{ statistics.risk_distribution.Critical }}</span>
+                    <span><span style="color: var(--high-color);">●</span> High: {{ statistics.risk_distribution.High }}</span>
+                    <span><span style="color: var(--medium-color);">●</span> Medium: {{ statistics.risk_distribution.Medium }}</span>
+                    <span><span style="color: var(--low-color);">●</span> Low: {{ statistics.risk_distribution.Low }}</span>
+                </div>
+            </div>
+        </div>
+
+        {% if vulnerabilities %}
+        <div class="section">
+            <div class="section-header">
+                <h2>Security Vulnerabilities</h2>
+            </div>
+            <div class="section-content">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Severity</th>
+                            <th>Count</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vuln in vulnerabilities %}
+                        <tr class="expandable" onclick="toggleExpand(this)">
+                            <td>{{ vuln.type.replace('_', ' ').title() }}</td>
+                            <td><span class="badge badge-{{ vuln.severity.lower() }}">{{ vuln.severity }}</span></td>
+                            <td>{{ vuln.count }}</td>
+                            <td>{{ vuln.description }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="expanded-content">
+                                <strong>Recommendation:</strong> {{ vuln.recommendation }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if secrets %}
+        <div class="section">
+            <div class="section-header">
+                <h2>Detected Secrets</h2>
+            </div>
+            <div class="section-content">
+                <div class="tabs">
+                    <div class="tab active" onclick="showTab(event, 'secrets-all')">All Secrets</div>
+                    <div class="tab" onclick="showTab(event, 'secrets-critical')">Critical Only</div>
+                </div>
+                
+                <div id="secrets-all" class="tab-content active">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Risk Level</th>
+                                <th>Confidence</th>
+                                <th>Source File</th>
+                                <th>Value (Masked)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for secret in secrets %}
+                            <tr class="expandable" onclick="toggleExpand(this)">
+                                <td>{{ secret.description }}</td>
+                                <td><span class="badge badge-{{ secret.risk_level.lower() }}">{{ secret.risk_level }}</span></td>
+                                <td>{{ (secret.confidence * 100)|round(1) }}%</td>
+                                <td style="word-break: break-all; max-width: 200px;">{{ secret.source_file }}</td>
+                                <td><code>{{ secret.value_masked }}</code></td>
+                            </tr>
+                            <tr>
+                                <td colspan="5" class="expanded-content">
+                                    <div style="margin-bottom: 8px;"><strong>Context:</strong></div>
+                                    <div class="code">{{ secret.context }}</div>
+                                    <div style="margin-top: 12px;"><strong>Risk Factors:</strong> {{ secret.risk_factors|join(', ') }}</div>
+                                    <div style="margin-top: 4px;"><strong>Detection Method:</strong> {{ secret.detection_method }}</div>
+                                    {% if secret.entropy %}
+                                    <div style="margin-top: 4px;"><strong>Entropy:</strong> {{ secret.entropy|round(2) }}</div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="secrets-critical" class="tab-content">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Risk Score</th>
+                                <th>Source File</th>
+                                <th>Value (Masked)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for secret in secrets %}
+                            {% if secret.risk_level == 'Critical' %}
+                            <tr class="expandable" onclick="toggleExpand(this)">
+                                <td>{{ secret.description }}</td>
+                                <td><span class="badge badge-critical">{{ secret.risk_score }}</span></td>
+                                <td style="word-break: break-all; max-width: 200px;">{{ secret.source_file }}</td>
+                                <td><code>{{ secret.value_masked }}</code></td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="expanded-content">
+                                    <div style="margin-bottom: 8px;"><strong>Remediation:</strong></div>
+                                    <div style="white-space: pre-line; background: var(--bg-surface); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">{{ secret.remediation }}</div>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if api_analysis %}
+        <div class="section">
+            <div class="section-header">
+                <h2>API Analysis</h2>
+            </div>
+            <div class="section-content">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Type</th>
+                            <th>Methods</th>
+                            <th>Auth Required</th>
+                            <th>CORS</th>
+                            <th>Vulnerabilities</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for api in api_analysis %}
+                        <tr class="expandable" onclick="toggleExpand(this)">
+                            <td style="word-break: break-all; max-width: 300px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em;">{{ api.url }}</td>
+                            <td>{{ api.api_type }}</td>
+                            <td>{{ api.methods_supported|join(', ') }}</td>
+                            <td>{{ 'Yes' if api.authentication_required else 'No' }}</td>
+                            <td>{{ 'Yes' if api.cors_enabled else 'No' }}</td>
+                            <td>{{ api.vulnerabilities|length }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="6" class="expanded-content">
+                                {% if api.vulnerabilities %}
+                                <div style="margin-bottom: 8px;"><strong>Vulnerabilities:</strong></div>
+                                <ul style="margin-left: 20px; margin-bottom: 12px;">
+                                    {% for vuln in api.vulnerabilities %}
+                                    <li>{{ vuln.description }} ({{ vuln.severity }})</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                
+                                {% if api.cors_vulnerabilities %}
+                                <div style="margin-bottom: 8px;"><strong>CORS Issues:</strong></div>
+                                <ul style="margin-left: 20px; margin-bottom: 12px;">
+                                    {% for cors_vuln in api.cors_vulnerabilities %}
+                                    <li>{{ cors_vuln }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                
+                                {% if api.parameters %}
+                                <div style="margin-bottom: 8px;"><strong>Parameters:</strong></div>
+                                <ul style="margin-left: 20px;">
+                                    {% for param in api.parameters %}
+                                    <li><code>{{ param.name }}</code> ({{ param.type }})</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="section">
+            <div class="section-header">
+                <h2>JavaScript Files Analyzed</h2>
+            </div>
+            <div class="section-content">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>URL</th>
+                            <th>Size</th>
+                            <th>Type</th>
+                            <th>Source</th>
+                            <th>Hash</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for js_file in javascript_files %}
+                        <tr>
+                            <td style="word-break: break-all; max-width: 400px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em;">{{ js_file.url }}</td>
+                            <td>{{ (js_file.size_bytes / 1024)|round(1) }} KB</td>
+                            <td>{{ js_file.type }}</td>
+                            <td><span class="badge badge-info">{{ js_file.source }}</span></td>
+                            <td><code style="font-size: 0.8em; color: var(--text-muted);">{{ js_file.hash[:16] }}...</code></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>Detailed Scan Statistics</h2>
+            </div>
+            <div class="section-content">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <h4>File Sources</h4>
+                        {% for source, count in statistics.file_sources.items() %}
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0; font-size: 0.9em;">
+                            <span style="color: var(--text-muted);">{{ source.title() }}:</span>
+                            <span style="font-weight: 600;">{{ count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="stat-item">
+                        <h4>Secret Types</h4>
+                        {% for secret_type, count in statistics.secret_types.items() %}
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0; font-size: 0.9em;">
+                            <span style="color: var(--text-muted);">{{ secret_type.replace('_', ' ').title() }}:</span>
+                            <span style="font-weight: 600;">{{ count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="stat-item">
+                        <h4>File Analysis</h4>
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0; font-size: 0.9em;">
+                            <span style="color: var(--text-muted);">Total Size:</span>
+                            <span style="font-weight: 600;">{{ summary.file_size_analyzed_mb }} MB</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0; font-size: 0.9em;">
+                            <span style="color: var(--text-muted);">Average Size:</span>
+                            <span style="font-weight: 600;">{{ (statistics.average_file_size / 1024)|round(1) }} KB</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0; font-size: 0.9em;">
+                            <span style="color: var(--text-muted);">Scan Errors:</span>
+                            <span style="font-weight: 600; color: {{ 'var(--critical-color)' if statistics.total_errors > 0 else 'var(--text-main)' }}">{{ statistics.total_errors }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <h4>Performance Metrics</h4>
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0; font-size: 0.9em;">
+                            <span style="color: var(--text-muted);">Files/Second:</span>
+                            <span style="font-weight: 600;">{{ ((statistics.total_js_files / 60) if statistics.total_js_files > 0 else 0)|round(2) }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0; font-size: 0.9em;">
+                            <span style="color: var(--text-muted);">MB/Second:</span>
+                            <span style="font-weight: 600;">{{ ((summary.file_size_analyzed_mb / 60) if summary.file_size_analyzed_mb > 0 else 0)|round(2) }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0; font-size: 0.9em;">
+                            <span style="color: var(--text-muted);">Success Rate:</span>
+                            <span style="font-weight: 600;">{{ ((statistics.total_js_files - statistics.total_errors) / statistics.total_js_files * 100)|round(1) if statistics.total_js_files > 0 else 100 }}%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if statistics.total_errors > 0 %}
+                <div class="alert alert-warning" style="margin-top: 24px;">
+                    <strong>Scan Errors:</strong> {{ statistics.total_errors }} files could not be processed. This may indicate network issues, access restrictions, or malformed JavaScript files.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="footer">
+            <h3 style="color: var(--text-main); font-weight: 600; margin-bottom: 8px;">JSEye - Intelligence & Discovery</h3>
+            <p>Advanced JavaScript security analysis and reconnaissance tool</p>
+            
+            <div class="footer-links">
+                <a href="https://github.com/letchupkt/jseye" target="_blank">GitHub Repository</a>
+                <a href="https://github.com/letchupkt/jseye/wiki" target="_blank">Documentation</a>
+                <a href="https://github.com/letchupkt/jseye/issues" target="_blank">Report Issues</a>
+            </div>
+            
+            <div style="margin-top: 24px; font-size: 0.85em; color: var(--text-muted);">
+                <p>JSEye v{{ jseye_version }} &nbsp;|&nbsp; Report v{{ report_version }} &nbsp;|&nbsp; Generated: {{ generated_at }}</p>
+            </div>
+        </div>
+        
+        <div class="watermark">
+            Powered by <a href="https://github.com/letchupkt" target="_blank">@letchupkt</a>
+        </div>
+    </div>
+
+    <script>
+        function toggleExpand(row) {
+            const nextRow = row.nextElementSibling;
+            if (!nextRow) return;
+            const expandedContent = nextRow.querySelector('.expanded-content');
+            if (!expandedContent) return;
+            
+            row.classList.toggle('expanded');
+            
+            if (expandedContent.style.display === 'none' || expandedContent.style.display === '') {
+                expandedContent.style.display = 'table-cell';
+            } else {
+                expandedContent.style.display = 'none';
+            }
+        }
+
+        function showTab(e, tabId) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabId).classList.add('active');
+
+            // Add active class to clicked tab safely
+            if (e && e.currentTarget) {
+                e.currentTarget.classList.add('active');
+            }
+        }
+
+        function addInteractivity() {
+            // Add click to copy functionality for code blocks
+            const codeBlocks = document.querySelectorAll('.code');
+            codeBlocks.forEach(block => {
+                block.style.cursor = 'pointer';
+                block.title = 'Click to copy';
+                
+                block.addEventListener('click', function() {
+                    navigator.clipboard.writeText(this.textContent).then(() => {
+                        const originalBg = this.style.background;
+                        this.style.background = '#064e3b'; // Dark green flash
+                        setTimeout(() => {
+                            this.style.background = originalBg;
+                        }, 300);
+                    });
+                });
+            });
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            addInteractivity();
+            
+            // Animate numbers on load safely
+            const numbers = document.querySelectorAll('.summary-card .number');
+            numbers.forEach(number => {
+                const textVal = number.textContent;
+                // Only animate if it's strictly a number
+                if (!isNaN(textVal) && textVal.trim() !== '') {
+                    const finalValue = parseInt(textVal) || 0;
+                    let currentValue = 0;
+                    const increment = Math.ceil(finalValue / 30);
+                    
+                    const timer = setInterval(() => {
+                        currentValue += increment;
+                        if (currentValue >= finalValue) {
+                            currentValue = finalValue;
+                            clearInterval(timer);
+                        }
+                        number.textContent = currentValue;
+                    }, 40);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
