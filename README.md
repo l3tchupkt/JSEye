@@ -1,4 +1,4 @@
-# JSEye v2.0.1 - Fully Autonomous Bug Hunting & Attack Surface Engine
+# JSEye v3.1.0 - Fully Autonomous Bug Hunting & Attack Surface Engine
 
 <div align="center">
   <img src="https://img.shields.io/badge/Python-3.8%2B-blue.svg" alt="Python Version"/>
@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/License-MIT-blue" alt="License"/>
 </div>
 
-JSEye v2.0.1 represents a massive architectural leap from passive reconnaissance to **fully autonomous, intelligent bug hunting**. Designed specifically for elite offensive security engineers, JSEye natively executes infinite-depth recursion, dynamic parameter fuzzing, and mathematically deduplicated crawling—requiring **zero configuration files**.
+JSEye v3.1.0 represents a massive architectural leap from passive reconnaissance to **fully autonomous, intelligent bug hunting**. Designed specifically for elite offensive security engineers, JSEye natively executes infinite-depth recursion, dynamic parameter fuzzing, and mathematically deduplicated crawling—requiring **zero configuration files**.
 
 Just point it at a target, and JSEye builds the entire attack surface.
 
@@ -14,7 +14,7 @@ Just point it at a target, and JSEye builds the entire attack surface.
 
 ## ⚡ Zero-Touch Installation
 
-Forget source downloads and configuration files. JSEye v2.0.1 is deployed exclusively as a self-contained pip package handling its own Go-toolchain compilation implicitly.
+Forget source downloads and configuration files. JSEye v3.1.0 is deployed exclusively as a self-contained pip package handling its own Go-toolchain compilation implicitly.
 
 ```bash
 # Global pip installation
@@ -28,9 +28,9 @@ pip install jseye --break-system-packages
 
 ---
 
-## 🔥 What's New in v2.0.1 (The Autonomous Upgrade)
+## 🔥 What's New in v3.1.0 (The Autonomous Upgrade)
 
-JSEye v2.0.1 drops legacy crutches and replaces them with 8 native Python engines:
+JSEye v3.1.0 drops legacy crutches and replaces them with 8 native Python engines:
 
 1. **Autonomous Scope Derivation Engine:** No more `scope.txt`. Give JSEye a URL, and it leverages `tldextract` to mathematically compute the root domain, mapping all internal subdomains dynamically while locking out third-party analytics trackers.
 2. **Infinite Recursive Queue:** JSEye now seamlessly unspools JavaScript imports, XHR endpoints, and dynamic routing logic infinitely. It crawls until the asset landscape is exhausted.
@@ -129,7 +129,7 @@ graph TD
 
 ## 🔐 Dependency Confusion & Supply Chain Attack Detection
 
-JSEye v2.0.1 includes a comprehensive dependency analyzer that automatically discovers and analyzes package.json files to identify supply chain vulnerabilities.
+JSEye v3.1.0 includes a comprehensive dependency analyzer that automatically discovers and analyzes package.json files to identify supply chain vulnerabilities.
 
 ### What It Detects
 
