@@ -1,0 +1,2 @@
+[console_scripts]
+jseye = jseye.cli:cli_main

@@ -1,0 +1,280 @@
+{
+  "secrets": {
+    "aws_access_key": {
+      "pattern": "AKIA[0-9A-Z]{16}",
+      "description": "AWS Access Key ID",
+      "severity": "high",
+      "confidence": 0.9
+    },
+    "aws_secret_key": {
+      "pattern": "[A-Za-z0-9/+=]{40}",
+      "description": "AWS Secret Access Key",
+      "severity": "critical",
+      "confidence": 0.7,
+      "context_required": ["aws", "secret", "key"]
+    },
+    "stripe_key": {
+      "pattern": "sk_live_[0-9a-zA-Z]{24}|pk_live_[0-9a-zA-Z]{24}|rk_live_[0-9a-zA-Z]{24}",
+      "description": "Stripe API Key",
+      "severity": "critical",
+      "confidence": 0.95
+    },
+    "stripe_test_key": {
+      "pattern": "sk_test_[0-9a-zA-Z]{24}|pk_test_[0-9a-zA-Z]{24}",
+      "description": "Stripe Test API Key",
+      "severity": "medium",
+      "confidence": 0.95
+    },
+    "slack_token": {
+      "pattern": "xox[baprs]-[0-9]{12}-[0-9]{12}-[0-9a-zA-Z]{24}",
+      "description": "Slack Token",
+      "severity": "high",
+      "confidence": 0.9
+    },
+    "slack_webhook": {
+      "pattern": "https://hooks\\.slack\\.com/services/[A-Z0-9]{9}/[A-Z0-9]{9}/[a-zA-Z0-9]{24}",
+      "description": "Slack Webhook URL",
+      "severity": "medium",
+      "confidence": 0.95
+    },
+    "google_api_key": {
+      "pattern": "AIza[0-9A-Za-z\\-_]{35}",
+      "description": "Google API Key",
+      "severity": "high",
+      "confidence": 0.9
+    },
+    "firebase_url": {
+      "pattern": "https://[a-z0-9-]+\\.firebaseio\\.com",
+      "description": "Firebase Database URL",
+      "severity": "medium",
+      "confidence": 0.8
+    },
+    "jwt_token": {
+      "pattern": "eyJ[A-Za-z0-9_-]*\\.[A-Za-z0-9_-]*\\.[A-Za-z0-9_-]*",
+      "description": "JWT Token",
+      "severity": "high",
+      "confidence": 0.8
+    },
+    "bearer_token": {
+      "pattern": "Bearer\\s+[A-Za-z0-9\\-_=]+",
+      "description": "Bearer Token",
+      "severity": "high",
+      "confidence": 0.7
+    },
+    "basic_auth": {
+      "pattern": "Basic\\s+[A-Za-z0-9+/=]+",
+      "description": "Basic Authentication",
+      "severity": "high",
+      "confidence": 0.8
+    },
+    "private_key": {
+      "pattern": "-----BEGIN [A-Z ]+PRIVATE KEY-----[\\s\\S]*?-----END [A-Z ]+PRIVATE KEY-----",
+      "description": "Private Key",
+      "severity": "critical",
+      "confidence": 0.95
+    },
+    "github_token": {
+      "pattern": "ghp_[0-9a-zA-Z]{36}|gho_[0-9a-zA-Z]{36}|ghu_[0-9a-zA-Z]{36}|ghs_[0-9a-zA-Z]{36}|ghr_[0-9a-zA-Z]{36}",
+      "description": "GitHub Token",
+      "severity": "critical",
+      "confidence": 0.95
+    },
+    "discord_token": {
+      "pattern": "[MN][A-Za-z\\d]{23}\\.[\\w-]{6}\\.[\\w-]{27}",
+      "description": "Discord Bot Token",
+      "severity": "high",
+      "confidence": 0.9
+    },
+    "twitter_api_key": {
+      "pattern": "[1-9][0-9]+-[0-9a-zA-Z]{40}",
+      "description": "Twitter API Key",
+      "severity": "high",
+      "confidence": 0.7,
+      "context_required": ["twitter", "api"]
+    },
+    "mailgun_api_key": {
+      "pattern": "key-[0-9a-zA-Z]{32}",
+      "description": "Mailgun API Key",
+      "severity": "high",
+      "confidence": 0.8
+    },
+    "twilio_api_key": {
+      "pattern": "SK[0-9a-fA-F]{32}",
+      "description": "Twilio API Key",
+      "severity": "high",
+      "confidence": 0.9
+    },
+    "paypal_braintree": {
+      "pattern": "access_token\\$production\\$[0-9a-z]{16}\\$[0-9a-f]{32}",
+      "description": "PayPal Braintree Access Token",
+      "severity": "critical",
+      "confidence": 0.95
+    },
+    "square_oauth": {
+      "pattern": "sq0atp-[0-9A-Za-z\\-_]{22}",
+      "description": "Square OAuth Secret",
+      "severity": "high",
+      "confidence": 0.9
+    },
+    "square_access_token": {
+      "pattern": "sqOatp-[0-9A-Za-z\\-_]{22}",
+      "description": "Square Access Token",
+      "severity": "high",
+      "confidence": 0.9
+    },
+    "shopify_shared_secret": {
+      "pattern": "shpss_[a-fA-F0-9]{32}",
+      "description": "Shopify Shared Secret",
+      "severity": "high",
+      "confidence": 0.9
+    },
+    "shopify_access_token": {
+      "pattern": "shpat_[a-fA-F0-9]{32}",
+      "description": "Shopify Access Token",
+      "severity": "high",
+      "confidence": 0.9
+    },
+    "shopify_private_app": {
+      "pattern": "shppa_[a-fA-F0-9]{32}",
+      "description": "Shopify Private App Access Token",
+      "severity": "high",
+      "confidence": 0.9
+    },
+    "generic_api_key": {
+      "pattern": "(?i)(?:api[_-]?key|apikey)\\s*[:=]\\s*['\"]?([a-zA-Z0-9_\\-]{16,})['\"]?",
+      "description": "Generic API Key",
+      "severity": "medium",
+      "confidence": 0.6
+    },
+    "generic_secret": {
+      "pattern": "(?i)(?:secret|password|passwd|pwd)\\s*[:=]\\s*['\"]?([a-zA-Z0-9_\\-!@#$%^&*()]{8,})['\"]?",
+      "description": "Generic Secret/Password",
+      "severity": "medium",
+      "confidence": 0.5
+    },
+    "generic_token": {
+      "pattern": "(?i)(?:token|auth)\\s*[:=]\\s*['\"]?([a-zA-Z0-9_\\-]{20,})['\"]?",
+      "description": "Generic Token",
+      "severity": "medium",
+      "confidence": 0.5
+    },
+    "database_url": {
+      "pattern": "(?i)(?:mongodb|mysql|postgresql|postgres)://[^\\s'\"]+",
+      "description": "Database Connection String",
+      "severity": "high",
+      "confidence": 0.8
+    },
+    "redis_url": {
+      "pattern": "redis://[^\\s'\"]+",
+      "description": "Redis Connection String",
+      "severity": "medium",
+      "confidence": 0.8
+    },
+    "ftp_url": {
+      "pattern": "ftp://[^\\s'\"]+",
+      "description": "FTP URL with credentials",
+      "severity": "medium",
+      "confidence": 0.7
+    },
+    "email_password": {
+      "pattern": "(?i)(?:smtp|email|mail).*(?:password|passwd|pwd)\\s*[:=]\\s*['\"]?([^'\"\\s]{6,})['\"]?",
+      "description": "Email Password",
+      "severity": "high",
+      "confidence": 0.6
+    },
+    "ssh_private_key": {
+      "pattern": "-----BEGIN OPENSSH PRIVATE KEY-----[\\s\\S]*?-----END OPENSSH PRIVATE KEY-----",
+      "description": "SSH Private Key",
+      "severity": "critical",
+      "confidence": 0.95
+    },
+    "certificate": {
+      "pattern": "-----BEGIN CERTIFICATE-----[\\s\\S]*?-----END CERTIFICATE-----",
+      "description": "Certificate",
+      "severity": "low",
+      "confidence": 0.9
+    },
+    "pkcs8_private_key": {
+      "pattern": "-----BEGIN PRIVATE KEY-----[\\s\\S]*?-----END PRIVATE KEY-----",
+      "description": "PKCS#8 Private Key",
+      "severity": "critical",
+      "confidence": 0.95
+    },
+    "rsa_private_key": {
+      "pattern": "-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----",
+      "description": "RSA Private Key",
+      "severity": "critical",
+      "confidence": 0.95
+    },
+    "dsa_private_key": {
+      "pattern": "-----BEGIN DSA PRIVATE KEY-----[\\s\\S]*?-----END DSA PRIVATE KEY-----",
+      "description": "DSA Private Key",
+      "severity": "critical",
+      "confidence": 0.95
+    },
+    "ec_private_key": {
+      "pattern": "-----BEGIN EC PRIVATE KEY-----[\\s\\S]*?-----END EC PRIVATE KEY-----",
+      "description": "EC Private Key",
+      "severity": "critical",
+      "confidence": 0.95
+    }
+  },
+  "endpoints": {
+    "api_endpoint": {
+      "pattern": "/api/[a-zA-Z0-9/_-]+",
+      "description": "API Endpoint",
+      "severity": "info",
+      "confidence": 0.8
+    },
+    "graphql_endpoint": {
+      "pattern": "/graphql|/graphiql",
+      "description": "GraphQL Endpoint",
+      "severity": "info",
+      "confidence": 0.9
+    },
+    "rest_endpoint": {
+      "pattern": "/(?:v[0-9]+/)?(?:users|user|admin|api|auth|login|register|upload|download|search|data)/[a-zA-Z0-9/_-]*",
+      "description": "REST API Endpoint",
+      "severity": "info",
+      "confidence": 0.7
+    },
+    "admin_endpoint": {
+      "pattern": "/(?:admin|administrator|manage|dashboard|panel)/[a-zA-Z0-9/_-]*",
+      "description": "Admin Endpoint",
+      "severity": "medium",
+      "confidence": 0.8
+    },
+    "debug_endpoint": {
+      "pattern": "/(?:debug|test|dev|development)/[a-zA-Z0-9/_-]*",
+      "description": "Debug/Development Endpoint",
+      "severity": "medium",
+      "confidence": 0.8
+    }
+  },
+  "files": {
+    "config_file": {
+      "pattern": "\\.(?:env|config|conf|ini|yaml|yml|json|xml)$",
+      "description": "Configuration File",
+      "severity": "medium",
+      "confidence": 0.9
+    },
+    "backup_file": {
+      "pattern": "\\.(?:bak|backup|old|orig|tmp)$",
+      "description": "Backup File",
+      "severity": "medium",
+      "confidence": 0.8
+    },
+    "log_file": {
+      "pattern": "\\.(?:log|logs)$",
+      "description": "Log File",
+      "severity": "low",
+      "confidence": 0.9
+    },
+    "source_map": {
+      "pattern": "\\.js\\.map$",
+      "description": "JavaScript Source Map",
+      "severity": "low",
+      "confidence": 0.95
+    }
+  }
+}
