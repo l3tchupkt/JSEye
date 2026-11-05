@@ -7,7 +7,7 @@ name = "jseye"
 dynamic = ["version"]
 description = "JavaScript Intelligence & Attack Surface Discovery Engine"
 readme = "README.md"
-license = "MIT"
+license = { text = "MIT" }
 authors = [
     {name = "Lakshmikanthan K", email = "letchupkt.dev@gmail.com"}
 ]
