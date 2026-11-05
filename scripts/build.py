@@ -246,6 +246,8 @@ def check_package():
 
 def main():
     """Main build function."""
+    # Ensure working directory is project root
+    os.chdir(Path(__file__).resolve().parent.parent)
     print_header("JSEye Build Script")
     
     # Clean first

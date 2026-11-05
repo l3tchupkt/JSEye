@@ -56,7 +56,9 @@ setup(
             'data/*.json',
             'data/*.yaml',
             'report/templates/*.html'
-        ]
+        ],
+        'jseye.data': ['*.json', '*.yaml'],
+        'jseye.report.templates': ['*.html']
     },
     install_requires=requirements,
     extras_require={

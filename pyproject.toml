@@ -80,7 +80,14 @@ Documentation = "https://github.com/l3tchupkt/JSEye/wiki"
 jseye = "jseye.cli:cli_main"
 
 [tool.setuptools]
-packages = ["jseye", "jseye.core", "jseye.report", "jseye.plugins"]
+packages = [
+    "jseye",
+    "jseye.core",
+    "jseye.data",
+    "jseye.plugins",
+    "jseye.report",
+    "jseye.report.templates",
+]
 include-package-data = true
 
 [tool.setuptools.dynamic]
@@ -88,6 +95,8 @@ version = {attr = "jseye.version.__version__"}
 
 [tool.setuptools.package-data]
 jseye = ["data/*.json", "data/*.yaml", "report/templates/*.html"]
+"jseye.data" = ["*.json", "*.yaml"]
+"jseye.report.templates" = ["*.html"]
 
 [tool.black]
 line-length = 100
