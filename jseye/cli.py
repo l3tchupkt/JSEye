@@ -272,7 +272,7 @@ Bug Hunter Examples:
     )
 
     parser.add_argument(
-        '--verbose',
+        '-v', '--verbose',
         action='store_true',
         help='Verbose output - show low-confidence findings'
     )

@@ -51,6 +51,8 @@ jobs:
           python -m twine check dist/*
 
       - name: Validate package contents and tag consistency
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           python scripts/validate_release.py
 
@@ -80,6 +82,7 @@ jobs:
       - name: Create or update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.tag || github.ref_name }}
           files: dist/*
           generate_release_notes: true
           draft: false

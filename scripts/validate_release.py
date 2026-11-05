@@ -28,20 +28,26 @@ def get_package_version() -> str:
 
 
 def validate_tag_consistency(expected_version: str) -> None:
-    """Ensure git tag (if present in CI environment) matches package version."""
-    ref_name = os.environ.get("GITHUB_REF_NAME", "").strip()
-    ref_type = os.environ.get("GITHUB_REF_TYPE", "").strip()
+    """Ensure git tag (if present or in CI environment) matches package version."""
+    # Check explicit RELEASE_TAG env var first, then GITHUB_REF_NAME
+    tag = os.environ.get("RELEASE_TAG", "").strip() or os.environ.get("GITHUB_REF_NAME", "").strip()
+    is_ci = os.environ.get("GITHUB_ACTIONS", "") == "true"
 
-    # If running on a tag push in GitHub Actions
-    if ref_type == "tag" or (ref_name.startswith("v") and "." in ref_name):
-        tag_version = ref_name.lstrip("v")
-        print(f"[*] Validating git tag: '{ref_name}' against package version: '{expected_version}'")
-        if tag_version != expected_version:
-            print(f"[!] ERROR: Git tag '{ref_name}' does not match package version '{expected_version}'!", file=sys.stderr)
+    if tag and (tag.startswith("v") or is_ci):
+        if not tag.startswith("v"):
+            print(f"[!] ERROR: Release tag '{tag}' must start with 'v' (e.g. v{expected_version})!", file=sys.stderr)
             sys.exit(1)
-        print(f"[+] Git tag matches package version: {expected_version}")
+        tag_version = tag.lstrip("v")
+        print(f"[*] Validating release tag: '{tag}' against package version: '{expected_version}'")
+        if tag_version != expected_version:
+            print(f"[!] ERROR: Release tag '{tag}' does not match package version '{expected_version}'!", file=sys.stderr)
+            sys.exit(1)
+        print(f"[+] Release tag matches package version: {expected_version}")
+    elif is_ci:
+        print("[!] ERROR: No release tag provided in CI environment!", file=sys.stderr)
+        sys.exit(1)
     else:
-        print(f"[*] No release tag environment detected. Validating package version: {expected_version}")
+        print(f"[*] Local environment detected. Validating package version: {expected_version}")
 
 
 def validate_distribution_artifacts(expected_version: str) -> None:
