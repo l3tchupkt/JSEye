@@ -1,10 +1,10 @@
 """Google API Key validator - checks keys against the Gemini Files API."""
 
-import re
-import urllib.request
-import urllib.error
 import json
-from typing import Dict, Any
+import re
+import urllib.error
+import urllib.request
+from typing import Any, Dict
 
 from .logging import get_logger
 
@@ -42,7 +42,7 @@ def validate_google_api_key(api_key: str, timeout: int = 10) -> Dict[str, Any]:
             url,
             headers={"User-Agent": "JSEye/3.0 Google-API-Key-Validator"},
         )
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosec B310
             status_code = resp.status
             # 200 means the key is valid and unrestricted for this API
             return {
@@ -58,10 +58,8 @@ def validate_google_api_key(api_key: str, timeout: int = 10) -> Dict[str, Any]:
         try:
             body = json.loads(e.read().decode("utf-8", errors="replace"))
             error_msg = body.get("error", {}).get("message", str(e))
-            error_status = body.get("error", {}).get("status", "")
         except Exception:
             error_msg = str(e)
-            error_status = ""
 
         if status_code == 400:
             return {
@@ -119,7 +117,7 @@ def validate_google_api_key(api_key: str, timeout: int = 10) -> Dict[str, Any]:
             "valid": False,
             "status_code": None,
             "status": "error",
-            "detail": f"Unexpected error: {str(e)}",
+            "detail": f"Unexpected error: {e!s}",
         }
 
 

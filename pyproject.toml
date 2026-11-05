@@ -7,7 +7,7 @@ name = "jseye"
 dynamic = ["version"]
 description = "JavaScript Intelligence & Attack Surface Discovery Engine"
 readme = "README.md"
-license = "MIT"
+license = { text = "MIT" }
 authors = [
     {name = "Lakshmikanthan K", email = "letchupkt.dev@gmail.com"}
 ]
@@ -27,6 +27,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Security",
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Software Development :: Testing",
@@ -46,12 +47,13 @@ dependencies = [
     "rich>=12.0.2",
     "psutil>=5.9.0",
     "requests>=2.28.0",
+    "packaging>=21.0",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
 headless = [
-    "selenium>=4.0.0",
-    "webdriver-manager>=3.8.0"
+    "playwright>=1.30.0",
 ]
 dev = [
     "pytest>=7.0.0",
@@ -63,27 +65,38 @@ dev = [
     "twine>=4.0.0",
 ]
 all = [
-    "selenium>=4.0.0",
-    "webdriver-manager>=3.8.0",
+    "playwright>=1.30.0",
     "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0"
+    "pytest-asyncio>=0.21.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/letchupkt/jseye"
-Repository = "https://github.com/letchupkt/jseye"
-Documentation = "https://github.com/letchupkt/jseye/wiki"
-"Bug Reports" = "https://github.com/letchupkt/jseye/issues"
+Homepage = "https://github.com/l3tchupkt/JSEye"
+Repository = "https://github.com/l3tchupkt/JSEye"
+Documentation = "https://github.com/l3tchupkt/JSEye/wiki"
+"Bug Reports" = "https://github.com/l3tchupkt/JSEye/issues"
 
 [project.scripts]
 jseye = "jseye.cli:cli_main"
 
 [tool.setuptools]
-packages = ["jseye", "jseye.core", "jseye.report", "jseye.plugins"]
+packages = [
+    "jseye",
+    "jseye.core",
+    "jseye.data",
+    "jseye.plugins",
+    "jseye.report",
+    "jseye.report.templates",
+]
 include-package-data = true
 
+[tool.setuptools.dynamic]
+version = {attr = "jseye.version.__version__"}
+
 [tool.setuptools.package-data]
-jseye = ["data/*.json", "report/templates/*.html"]
+jseye = ["data/*.json", "data/*.yaml", "report/templates/*.html"]
+"jseye.data" = ["*.json", "*.yaml"]
+"jseye.report.templates" = ["*.html"]
 
 [tool.black]
 line-length = 100
@@ -127,4 +140,26 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+exclude = [
+    ".git",
+    "build",
+    "dist",
+    ".eggs",
+    "*.egg-info",
+    ".venv",
+    "venv",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = [
+    "E501",
+    "E402",
+    "W291",
+    "W293",
 ]

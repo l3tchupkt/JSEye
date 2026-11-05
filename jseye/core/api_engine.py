@@ -1,19 +1,20 @@
 """API intelligence and reconnaissance engine."""
 
 import asyncio
-import aiohttp
 import json
-from typing import List, Dict, Any, Optional, Set
+from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin, urlparse
-import re
+
+import aiohttp
 
 
 class APIIntelligence:
     """API reconnaissance and intelligence gathering."""
     
-    def __init__(self, timeout: int = 10, max_concurrent: int = 15):
+    def __init__(self, timeout: int = 10, max_concurrent: int = 15, active_probing: bool = False):
         self.timeout = aiohttp.ClientTimeout(total=timeout)
         self.max_concurrent = max_concurrent
+        self.active_probing = active_probing
         self.session = None
         
     async def __aenter__(self):
@@ -77,8 +78,12 @@ class APIIntelligence:
                 'security_headers': {}
             }
             
-            # Test different HTTP methods
-            methods_to_test = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD']
+            # Test HTTP methods: passive mode tests safe methods (GET, OPTIONS, HEAD).
+            # State-changing methods (POST, PUT, DELETE, PATCH) only tested in active mode.
+            if self.active_probing:
+                methods_to_test = ['GET', 'OPTIONS', 'HEAD', 'POST', 'PUT', 'DELETE', 'PATCH']
+            else:
+                methods_to_test = ['GET', 'OPTIONS', 'HEAD']
             
             for method in methods_to_test:
                 method_result = await self._test_http_method(full_url, method)
@@ -217,9 +222,7 @@ class APIIntelligence:
         # Check URL patterns
         if '/graphql' in url_lower or '/graphiql' in url_lower:
             return 'graphql'
-        elif '/api/' in url_lower:
-            return 'rest'
-        elif '/v1/' in url_lower or '/v2/' in url_lower:
+        elif '/api/' in url_lower or '/v1/' in url_lower or '/v2/' in url_lower:
             return 'rest'
         elif '.json' in url_lower:
             return 'json_api'

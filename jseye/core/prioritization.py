@@ -1,9 +1,9 @@
 """Prioritization Engine for JSEye v3.0 - High Signal Mode."""
 
 import re
-from typing import Dict, List, Any, Set
 from dataclasses import dataclass
-from urllib.parse import urlparse
+from typing import Any, Dict, List
+
 from .logging import get_logger
 
 logger = get_logger(__name__)
@@ -16,6 +16,18 @@ class PriorityScore:
     level: str  # 'critical', 'high', 'medium', 'low'
     factors: List[str]  # Contributing factors
     actionable: bool  # Is this actionable for bug hunters?
+
+
+class PrioritizedEndpointsList(list):
+    """List of prioritized endpoints supporting dict-like .get(level) access."""
+
+    def get(self, key: str, default: Any = None) -> Any:
+        if key in ("critical", "high", "medium", "low"):
+            return [
+                e for e in self
+                if isinstance(e, dict) and (e.get("priority") == key or e.get("priority_level") == key)
+            ]
+        return default
 
 
 class PrioritizationEngine:
@@ -81,6 +93,22 @@ class PrioritizationEngine:
         if 'endpoints' in scan_results:
             endpoint_priorities = self._prioritize_endpoints(scan_results['endpoints'])
             self._merge_priorities(prioritized, endpoint_priorities)
+
+            prio_list = PrioritizedEndpointsList()
+            for level, key in (
+                ('critical', 'critical_findings'),
+                ('high', 'high_priority'),
+                ('medium', 'medium_priority'),
+                ('low', 'low_priority'),
+            ):
+                for ep in endpoint_priorities.get(key, []):
+                    item = dict(ep)
+                    item['priority'] = level
+                    item['priority_level'] = level
+                    prio_list.append(item)
+            prioritized['prioritized_endpoints'] = prio_list
+        else:
+            prioritized['prioritized_endpoints'] = PrioritizedEndpointsList()
         
         if 'secrets' in scan_results:
             secret_priorities = self._prioritize_secrets(scan_results['secrets'])
@@ -104,8 +132,10 @@ class PrioritizationEngine:
         priorities = {'critical_findings': [], 'high_priority': [], 'medium_priority': [], 'low_priority': []}
         
         for endpoint in endpoints:
-            # Defensive: raw strings (plain URL paths) are coerced to minimal dicts
-            if isinstance(endpoint, str):
+            # Defensive: coerce dataclasses or objects with url attribute
+            if hasattr(endpoint, '__dict__') and not isinstance(endpoint, dict):
+                endpoint = dict(vars(endpoint))
+            elif isinstance(endpoint, str):
                 endpoint = {'url': endpoint, 'method': 'GET'}
             elif not isinstance(endpoint, dict):
                 continue

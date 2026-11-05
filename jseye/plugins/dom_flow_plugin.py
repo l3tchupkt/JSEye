@@ -1,10 +1,19 @@
 """DOM Flow Analysis Plugin for JSEye v2.0."""
 
 import asyncio
-from typing import Dict, List, Any
-from jseye.plugins.base import BasePlugin, PluginMetadata, PluginContext, PluginResult, PluginCategory, ExploitationLikelihood, ExposureLevel
+from typing import Any, Dict, List
+
 from jseye.core.dom_flow import DOMFlowAnalyzer
 from jseye.core.logging import get_logger
+from jseye.plugins.base import (
+    BasePlugin,
+    ExploitationLikelihood,
+    ExposureLevel,
+    PluginCategory,
+    PluginContext,
+    PluginMetadata,
+    PluginResult,
+)
 
 logger = get_logger(__name__)
 
@@ -178,7 +187,7 @@ class DOMFlowPlugin(BasePlugin):
                         result.add_finding(finding)
                         
                 except Exception as e:
-                    error_msg = f"DOM flow analysis failed for {js_file.get('url', 'unknown')}: {str(e)}"
+                    error_msg = f"DOM flow analysis failed for {js_file.get('url', 'unknown')}: {e!s}"
                     result.errors.append(error_msg)
                     logger.warning(error_msg)
             
@@ -208,7 +217,7 @@ class DOMFlowPlugin(BasePlugin):
                        high_risk=len([f for f in result.findings if f.get('severity') in ['critical', 'high']]))
             
         except Exception as e:
-            error_msg = f"DOM flow analysis plugin failed: {str(e)}"
+            error_msg = f"DOM flow analysis plugin failed: {e!s}"
             result.errors.append(error_msg)
             logger.error(error_msg, target=context.target)
         
@@ -229,7 +238,6 @@ class DOMFlowPlugin(BasePlugin):
     
     def _get_remediation_advice(self, source: Dict[str, Any], sink: Dict[str, Any]) -> str:
         """Get remediation advice for DOM flow vulnerability."""
-        source_name = source.get('name', '')
         sink_name = sink.get('name', '')
         
         advice = "General DOM XSS Prevention:\n"

@@ -1,12 +1,15 @@
 """Wayback Machine integration for historical JavaScript discovery."""
 
 import asyncio
+from datetime import datetime, timezone
+from typing import Any, Dict, List
+from urllib.parse import urlparse
+
 import aiohttp
-from typing import List, Dict, Any, Set
-from urllib.parse import urlparse, urljoin
-import json
 from waybackpy import WaybackMachineCDXServerAPI
-from .utils import normalize_url, is_js_file, extract_domain
+
+from ..version import __version__
+from .utils import is_js_file
 
 
 class WaybackIntegration:
@@ -49,7 +52,7 @@ class WaybackIntegration:
             
             return unique_js_files
             
-        except Exception as e:
+        except Exception:
             return []
     
     async def _get_wayback_urls(self, domain: str, limit: int) -> List[Dict[str, Any]]:
@@ -58,11 +61,12 @@ class WaybackIntegration:
         
         try:
             # Use waybackpy for initial discovery
+            current_date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
             cdx_api = WaybackMachineCDXServerAPI(
                 url=f"*.{domain}/*",
-                user_agent="JSEye/1.0.0",
+                user_agent=f"JSEye/{__version__}",
                 start_timestamp="20100101",
-                end_timestamp="20241231"
+                end_timestamp=current_date_str
             )
             
             # Get snapshots
@@ -85,7 +89,7 @@ class WaybackIntegration:
             
             wayback_urls.extend(snapshots)
             
-        except Exception as e:
+        except Exception:
             # Fallback to direct CDX API query
             try:
                 wayback_urls = await self._query_cdx_api_direct(domain, limit)
@@ -100,7 +104,7 @@ class WaybackIntegration:
         
         try:
             # CDX API endpoint
-            cdx_url = "http://web.archive.org/cdx/search/cdx"
+            cdx_url = "https://web.archive.org/cdx/search/cdx"
             
             params = {
                 'url': f"*.{domain}/*",

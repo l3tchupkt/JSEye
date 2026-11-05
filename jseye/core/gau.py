@@ -1,10 +1,10 @@
 """GAU (Get All URLs) integration for URL discovery."""
 
 import asyncio
-import subprocess
-import tempfile
 import os
-from typing import List, Dict, Any, Set
+import subprocess
+from typing import Any, Dict, List
+
 from .utils import is_js_file, normalize_url
 
 
@@ -109,15 +109,6 @@ class GAUIntegration:
             # Check if file exists
             if not os.path.exists(domains_file):
                 return []
-            
-            # Run GAU with file input
-            cmd = [
-                'gau',
-                '--subs',
-                '--threads', '10',
-                '--timeout', '10',
-                '--retries', '2'
-            ]
             
             with open(domains_file, 'r') as f:
                 domains = [line.strip() for line in f if line.strip()]

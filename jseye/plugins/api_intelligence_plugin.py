@@ -1,10 +1,19 @@
 """API Intelligence Plugin for JSEye v2.0."""
 
 import asyncio
-from typing import Dict, List, Any
-from jseye.plugins.base import BasePlugin, PluginMetadata, PluginContext, PluginResult, PluginCategory, ExploitationLikelihood, ExposureLevel
+from typing import Any, Dict, List
+
 from jseye.core.api_engine import APIIntelligence
 from jseye.core.logging import get_logger
+from jseye.plugins.base import (
+    BasePlugin,
+    ExploitationLikelihood,
+    ExposureLevel,
+    PluginCategory,
+    PluginContext,
+    PluginMetadata,
+    PluginResult,
+)
 
 logger = get_logger(__name__)
 
@@ -86,7 +95,8 @@ class APIIntelligencePlugin(BasePlugin):
             endpoints_list = list(all_endpoints)[:50]  # Limit to avoid overwhelming
             network_calls = 0
             
-            async with APIIntelligence(timeout=10, max_concurrent=10) as api_engine:
+            active_probing = bool(context.config.get('active_probing', False))
+            async with APIIntelligence(timeout=10, max_concurrent=10, active_probing=active_probing) as api_engine:
                 # Analyze endpoints
                 api_analysis = await api_engine.analyze_endpoints(endpoints_list, context.target)
                 network_calls += len(endpoints_list) * 3  # Approximate network calls
@@ -156,7 +166,7 @@ class APIIntelligencePlugin(BasePlugin):
                            vulnerable_endpoints=vulnerable_endpoints)
                 
         except Exception as e:
-            error_msg = f"API intelligence plugin failed: {str(e)}"
+            error_msg = f"API intelligence plugin failed: {e!s}"
             result.errors.append(error_msg)
             logger.error(error_msg, target=context.target)
         
@@ -168,7 +178,6 @@ class APIIntelligencePlugin(BasePlugin):
     def _process_api_analysis(self, api_result: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process API analysis result into findings."""
         findings = []
-        url = api_result.get('url', '')
         
         # Handle different analysis types
         analysis_type = api_result.get('type', 'endpoint')

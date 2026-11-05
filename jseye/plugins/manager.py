@@ -1,29 +1,32 @@
 """Plugin manager for JSEye v2.0 - Dynamic plugin loading and execution."""
 
-import os
-import sys
+import asyncio
 import importlib
 import inspect
-import asyncio
-import traceback
-from typing import Dict, List, Any, Optional, Type
+import os
+import sys
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from jseye.plugins.base import BasePlugin, PluginContext, PluginResult, PluginCategory, PluginMetadata
-from jseye.core.logging import get_logger
 from jseye.core.exceptions import JSEyeException
+from jseye.core.logging import get_logger
+from jseye.plugins.base import (
+    BasePlugin,
+    PluginCategory,
+    PluginContext,
+    PluginMetadata,
+    PluginResult,
+)
 
 logger = get_logger(__name__)
 
 
 class PluginLoadError(JSEyeException):
     """Raised when plugin loading fails."""
-    pass
 
 
 class PluginExecutionError(JSEyeException):
     """Raised when plugin execution fails."""
-    pass
 
 
 class PluginManager:
@@ -176,8 +179,8 @@ class PluginManager:
     
     async def execute_plugins(self, context: PluginContext) -> Dict[str, PluginResult]:
         """Execute all enabled plugins in order."""
-        from rich.progress import Progress, SpinnerColumn, TextColumn
         from rich.console import Console
+        from rich.progress import Progress, SpinnerColumn, TextColumn
         
         results = {}
         console = Console()
@@ -209,9 +212,6 @@ class PluginManager:
                 
                 task = progress.add_task(f"Running {plugin_name}...", total=None)
                 
-                # Add small delay for better visibility
-                await asyncio.sleep(1.0)  # Increased delay
-                
                 try:
                     result = await self._execute_single_plugin(plugin, context)
                     results[plugin_name] = result
@@ -221,9 +221,6 @@ class PluginManager:
                     
                     progress.update(task, description=f"Completed {plugin_name} ({len(result.findings)} findings)")
                     
-                    # Add delay to show completion status
-                    await asyncio.sleep(0.8)  # Increased delay
-                    
                 except Exception as e:
                     logger.error(f"Plugin {plugin_name} execution failed: {e}")
                     
@@ -232,8 +229,7 @@ class PluginManager:
                     error_result.errors.append(str(e))
                     results[plugin_name] = error_result
                     
-                    progress.update(task, description=f"Failed {plugin_name}: {str(e)}")
-                    await asyncio.sleep(0.8)  # Increased delay
+                    progress.update(task, description=f"Failed {plugin_name}: {e!s}")
                 
                 progress.remove_task(task)
         
@@ -290,7 +286,7 @@ class PluginManager:
             
             # Create error result
             error_result = PluginResult(plugin_name=plugin_name)
-            error_result.errors.append(f"Execution error: {str(e)}")
+            error_result.errors.append(f"Execution error: {e!s}")
             error_result.execution_time = asyncio.get_event_loop().time() - start_time
             
             return error_result

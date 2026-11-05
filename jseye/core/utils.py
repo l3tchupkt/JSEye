@@ -1,32 +1,52 @@
 """Utility functions for JSEye."""
 
+import base64
 import hashlib
 import re
-import base64
 import urllib.parse
-from typing import List, Dict, Any, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 from urllib.parse import urljoin, urlparse
+
 import tldextract
 
 
 def normalize_url(url: str, base_url: str = None) -> str:
     """Normalize and clean URL."""
+    if not url or not isinstance(url, str):
+        return ""
+    
+    url = url.strip()
     if not url:
         return ""
     
-    # Handle relative URLs
-    if base_url and not url.startswith(('http://', 'https://')):
+    # Handle protocol-relative URLs
+    if url.startswith("//"):
+        if base_url:
+            base_scheme = urlparse(base_url).scheme or "https"
+            url = f"{base_scheme}:{url}"
+        else:
+            url = f"https:{url}"
+    elif base_url and not url.startswith(('http://', 'https://')):
         url = urljoin(base_url, url)
     
     # Parse and reconstruct
     parsed = urlparse(url)
     
-    # Remove fragments and normalize
-    normalized = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
-    if parsed.query:
-        normalized += f"?{parsed.query}"
-    
-    return normalized
+    if parsed.scheme and parsed.netloc:
+        # Full absolute URL
+        normalized = f"{parsed.scheme.lower()}://{parsed.netloc.lower()}{parsed.path}"
+        if parsed.query:
+            normalized += f"?{parsed.query}"
+        return normalized
+    else:
+        # Relative URL or path-only
+        path = parsed.path
+        if not path and not parsed.query:
+            return url
+        normalized = path
+        if parsed.query:
+            normalized += f"?{parsed.query}"
+        return normalized
 
 
 def extract_domain(url: str) -> str:
@@ -82,26 +102,30 @@ def decode_uri_component(encoded: str) -> str:
 
 def extract_js_strings(content: str) -> List[str]:
     """Extract string literals from JavaScript content."""
+    if not content:
+        return []
+    
     strings = []
     
+    # Use non-capturing group (?:...) inside the capturing quotes
     # Single quoted strings
-    single_quote_pattern = r"'([^'\\]|\\.)*'"
+    single_quote_pattern = r"'((?:[^'\\]|\\.)*)'"
     strings.extend(re.findall(single_quote_pattern, content))
     
     # Double quoted strings
-    double_quote_pattern = r'"([^"\\\\]|\\\\.)*"'
+    double_quote_pattern = r'"((?:[^"\\]|\\.)*)"'
     strings.extend(re.findall(double_quote_pattern, content))
     
     # Template literals
-    template_pattern = r'`([^`\\\\]|\\\\.)*`'
+    template_pattern = r'`((?:[^`\\]|\\.)*)`'
     strings.extend(re.findall(template_pattern, content))
     
     # Clean up strings
     cleaned_strings = []
     for s in strings:
-        # Remove quotes
-        if s.startswith(("'", '"', '`')) and s.endswith(("'", '"', '`')):
-            s = s[1:-1]
+        # Unescape escaped characters
+        s = s.replace("\\'", "'").replace('\\"', '"').replace("\\`", "`").replace("\\n", " ").replace("\\t", " ")
+        s = s.strip()
         
         # Skip empty or very short strings
         if len(s) > 3:
@@ -118,9 +142,7 @@ def extract_urls_from_string(text: str) -> List[str]:
     normalized_urls = []
     for url in urls:
         if not url.startswith(('http://', 'https://')):
-            if url.startswith('www.'):
-                url = 'https://' + url
-            elif '.' in url:
+            if url.startswith('www.') or '.' in url:
                 url = 'https://' + url
         
         normalized_urls.append(url)
@@ -191,9 +213,12 @@ def extract_endpoints_from_js(content: str) -> List[str]:
 
 def clean_js_content(content: str) -> str:
     """Clean and prepare JavaScript content for analysis."""
-    # Remove comments
-    content = re.sub(r'//.*?$', '', content, flags=re.MULTILINE)
+    if not content:
+        return ""
+    # Remove block comments
     content = re.sub(r'/\*.*?\*/', '', content, flags=re.DOTALL)
+    # Remove line comments that are not part of URLs (e.g. http://)
+    content = re.sub(r'(?<!:)\/\/.*?$', '', content, flags=re.MULTILINE)
     
     # Normalize whitespace
     content = re.sub(r'\s+', ' ', content)

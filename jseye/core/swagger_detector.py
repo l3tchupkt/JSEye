@@ -148,7 +148,7 @@ class SwaggerDetector:
             )
         return self
 
-    async def __aexit__(self, *_: Any) -> None:
+    async def __aexit__(self, *_: object) -> None:
         if self._session:
             await self._session.close()
             self._session = None

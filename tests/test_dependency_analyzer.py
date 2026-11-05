@@ -1,8 +1,9 @@
-import pytest
-import asyncio
 from unittest.mock import AsyncMock, patch
 
+import pytest
+
 from jseye.core.dependency_analyzer import DependencyAnalyzer
+
 
 @pytest.fixture
 def analyzer():

@@ -3,7 +3,10 @@
 import asyncio
 from typing import Any, Dict, List
 
-from jseye.core.google_api_validator import extract_google_api_keys, validate_google_api_key
+from jseye.core.google_api_validator import (
+    extract_google_api_keys,
+    validate_google_api_key,
+)
 from jseye.core.logging import get_logger
 from jseye.plugins.base import (
     BasePlugin,

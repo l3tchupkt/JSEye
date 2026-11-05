@@ -5,9 +5,9 @@ Queries multiple CVE databases for vulnerability information
 
 import asyncio
 import aiohttp
-import json
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from urllib.parse import quote
+from ..version import __version__
 
 
 class CVELookup:
@@ -78,9 +78,6 @@ class CVELookup:
     async def _query_osv(self, library: str, version: str) -> Dict[str, Any]:
         """Query OSV (Open Source Vulnerabilities) API."""
         try:
-            # OSV uses ecosystem-specific package names
-            ecosystems = ['npm', 'PyPI', 'Maven', 'Go', 'RubyGems', 'NuGet']
-            
             # Try npm first (most common for JS)
             package_name = library
             
@@ -139,7 +136,7 @@ class CVELookup:
                 async with session.get(
                     url,
                     timeout=aiohttp.ClientTimeout(total=self.timeout),
-                    headers={'User-Agent': 'JSEye/3.0.1'}
+                    headers={'User-Agent': f'JSEye/{__version__}'}
                 ) as response:
                     if response.status == 200:
                         data = await response.json()

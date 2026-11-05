@@ -1,8 +1,9 @@
 """DOM sink and source flow analysis engine for XSS detection."""
 
 import re
-from typing import Dict, List, Any, Set, Tuple, Optional
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Tuple
+
 from .logging import get_logger
 
 logger = get_logger(__name__)

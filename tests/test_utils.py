@@ -1,8 +1,12 @@
-import pytest
 from jseye.core.utils import (
-    normalize_url, extract_domain, calculate_sha256, 
-    decode_base64, is_js_file, mask_secret
+    calculate_sha256,
+    decode_base64,
+    extract_domain,
+    is_js_file,
+    mask_secret,
+    normalize_url,
 )
+
 
 def test_normalize_url():
     assert normalize_url("/api/test", "https://example.com") == "https://example.com/api/test"

@@ -18,9 +18,11 @@ import asyncio
 import re
 import time
 from typing import Any, Dict, List, Optional
-from urllib.parse import urlencode, urlparse, parse_qs, urlunparse
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
+from ..version import __version__
 from .logging import get_logger
+from .scope import is_private_ip
 
 logger = get_logger(__name__)
 
@@ -111,7 +113,7 @@ class ActiveProber:
         async with aiohttp.ClientSession(
             connector=connector,
             timeout=timeout_cfg,
-            headers={"User-Agent": "JSEye/3.0.1 (security-research)"},
+            headers={"User-Agent": f"JSEye/{__version__} (security-research)"},
         ) as session:
             tasks = [self._probe_one(session, ep) for ep in endpoints]
             await asyncio.gather(*tasks, return_exceptions=True)
@@ -154,10 +156,7 @@ class ActiveProber:
                     break
 
                 mutated_url = self._mutate_url(url, param_name, payload)
-                reflection_marker = _REFLECTION_MARKER + payload[:6].replace("'", "x").replace('"', "x")
-                mutated_url_marked = self._mutate_url(url, param_name, reflection_marker)
-
-                result = await self._fetch(session, mutated_url_marked)
+                result = await self._fetch(session, mutated_url)
                 if result:
                     self.captured_requests.append(result)
                     self._analyse_mutation(result, baseline, param_name, payload, url)
@@ -168,7 +167,26 @@ class ActiveProber:
     # HTTP fetch
     # ------------------------------------------------------------------
 
+    def _is_safe_url(self, url: str) -> bool:
+        """Check if target host is safe from SSRF."""
+        try:
+            parsed = urlparse(url)
+            host = (parsed.hostname or "").lower()
+            if not host:
+                return False
+            if host in ("localhost", "127.0.0.1", "::1") or host.endswith(".localhost"):
+                return False
+            if is_private_ip(host):
+                return False
+            return True
+        except Exception:
+            return False
+
     async def _fetch(self, session: "aiohttp.ClientSession", url: str) -> Optional[Dict[str, Any]]:
+        if not self._is_safe_url(url):
+            logger.debug(f"Skipping potentially unsafe probe URL: {url}")
+            return None
+
         async with self._semaphore:
             t0 = time.time()
             try:
@@ -237,7 +255,7 @@ class ActiveProber:
         b_size = baseline.get("response_size", 0)
 
         # Reflection
-        if _REFLECTION_MARKER in body:
+        if (_REFLECTION_MARKER in body) or (payload and len(payload) >= 3 and payload in body):
             self._add_finding("xss_reflection", url, "High",
                               f"Input reflected in response for param '{param}'",
                               param=param, payload=payload)

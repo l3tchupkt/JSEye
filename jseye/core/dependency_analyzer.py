@@ -2,13 +2,15 @@
 Dependency Confusion/Takeover Analyzer
 """
 
-import re
-import json
 import asyncio
-import aiohttp
-from typing import Dict, List, Any, Optional, Tuple
-from urllib.parse import urljoin
+import json
+import re
 from difflib import SequenceMatcher
+from typing import Any, Dict, List
+from urllib.parse import urljoin, urlparse
+
+import aiohttp
+
 from .logging import get_logger
 
 logger = get_logger(__name__)
@@ -58,7 +60,7 @@ class DependencyAnalyzer:
     def extract_dependencies(self, package_data):
         deps = {'dependencies': {}, 'devDependencies': {}, 'peerDependencies': {}, 'optionalDependencies': {}}
         data = package_data.get('data', package_data)
-        for dep_type in deps.keys():
+        for dep_type in deps:
             if dep_type in data:
                 deps[dep_type] = data[dep_type]
         return deps
@@ -104,7 +106,7 @@ class DependencyAnalyzer:
         if is_private and npm_info.get('exists'):
             result['vulnerabilities'].append({'type': 'DEPENDENCY_CONFUSION', 'severity': 'CRITICAL', 'description': f"Private package '{name}' exists in public NPM registry"})
             result['risk_score'] += 50
-        if npm_info.get('exists') == False:
+        if not npm_info.get('exists'):
             result['vulnerabilities'].append({'type': 'TAKEOVER_OPPORTUNITY', 'severity': 'HIGH', 'description': f"Package '{name}' not found in NPM registry"})
             result['risk_score'] += 30
         is_suspicious, suspicious_reason = self.check_version_suspicion(version)
@@ -165,3 +167,87 @@ class DependencyAnalyzer:
         except Exception:
             pass
         return None
+
+    async def discover_and_analyze(self, js_files: List[Any], urls: Any) -> Dict[str, Any]:
+        """Discover package manifests and analyze dependencies for risks."""
+        close_session = False
+        if not self.session:
+            connector = aiohttp.TCPConnector(limit=self.max_concurrent, ssl=False)
+            timeout = aiohttp.ClientTimeout(total=self.timeout)
+            self.session = aiohttp.ClientSession(connector=connector, timeout=timeout)
+            close_session = True
+
+        try:
+            base_urls = set()
+            if isinstance(urls, (list, set)):
+                for u in urls:
+                    if isinstance(u, str) and u.startswith(("http://", "https://")):
+                        p = urlparse(u)
+                        base_urls.add(f"{p.scheme}://{p.netloc}")
+            elif isinstance(urls, str) and urls.startswith(("http://", "https://")):
+                p = urlparse(urls)
+                base_urls.add(f"{p.scheme}://{p.netloc}")
+
+            for js in js_files:
+                js_url = js.get("url") if isinstance(js, dict) else (js if isinstance(js, str) else "")
+                if js_url and js_url.startswith(("http://", "https://")):
+                    p = urlparse(js_url)
+                    base_urls.add(f"{p.scheme}://{p.netloc}")
+
+            discovered_manifests = []
+            for base in list(base_urls)[:5]:
+                pkg_files = await self.discover_package_files(base, js_files)
+                discovered_manifests.extend(pkg_files)
+
+            if not discovered_manifests:
+                return {
+                    "success": False,
+                    "message": "No package files found",
+                    "statistics": {"total_dependencies": 0, "vulnerable_count": 0},
+                    "vulnerable_dependencies": [],
+                }
+
+            all_vulnerable_deps = []
+            total_dependencies = 0
+            critical_count = 0
+            high_count = 0
+            confusion_risk = 0
+            missing_packages = 0
+
+            for manifest in discovered_manifests:
+                analysis = await self.analyze_package_json(manifest)
+                total_dependencies += analysis.get("total_dependencies", 0)
+                critical_count += analysis.get("critical_count", 0)
+                high_count += analysis.get("high_count", 0)
+                confusion_risk += analysis.get("confusion_risk", 0)
+                missing_packages += analysis.get("takeover_risk", 0)
+
+                for pkg in analysis.get("vulnerable_packages", []):
+                    risk_factors = [v.get("description", "") for v in pkg.get("vulnerabilities", [])]
+                    all_vulnerable_deps.append({
+                        "name": pkg.get("name"),
+                        "version": pkg.get("version"),
+                        "severity": pkg.get("severity", "MEDIUM"),
+                        "risk_score": pkg.get("risk_score", 0),
+                        "risk_factors": risk_factors,
+                        "vulnerabilities": pkg.get("vulnerabilities", []),
+                        "source_file": manifest.get("url", ""),
+                    })
+
+            return {
+                "success": True,
+                "manifests_analyzed": len(discovered_manifests),
+                "statistics": {
+                    "total_dependencies": total_dependencies,
+                    "vulnerable_count": len(all_vulnerable_deps),
+                    "critical_count": critical_count,
+                    "high_count": high_count,
+                    "confusion_risk": confusion_risk,
+                    "missing_packages": missing_packages,
+                },
+                "vulnerable_dependencies": all_vulnerable_deps,
+            }
+        finally:
+            if close_session and self.session:
+                await self.session.close()
+                self.session = None

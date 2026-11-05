@@ -1,9 +1,10 @@
 """Attack Surface Graph Engine for JSEye v2.1."""
 
 import json
-from typing import Dict, List, Any, Set, Tuple
 from dataclasses import dataclass, field
+from typing import Any, Dict, List
 from urllib.parse import urlparse
+
 from .logging import get_logger
 
 logger = get_logger(__name__)

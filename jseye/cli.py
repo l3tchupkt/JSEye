@@ -4,7 +4,7 @@ import argparse
 import asyncio
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Any
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -12,12 +12,9 @@ from rich.table import Table
 from rich.panel import Panel
 
 from .version import __version__
-from .installer import ToolInstaller
 from .core.banner import print_banner_async
 from .core.plugin_crawler import PluginBasedCrawler
 from .plugins.manager import PluginManager
-from .core.profiling_engine import ProfilingEngine
-from .core.graph_engine import GraphEngine
 from .report.json_report import JSONReportGenerator
 from .report.html_report import HTMLReportGenerator
 
@@ -275,7 +272,7 @@ Bug Hunter Examples:
     )
 
     parser.add_argument(
-        '--verbose',
+        '-v', '--verbose',
         action='store_true',
         help='Verbose output - show low-confidence findings'
     )
@@ -294,7 +291,7 @@ Bug Hunter Examples:
 def setup_output_directory(output_dir: str = None) -> str:
     """Set up output directory in current working directory."""
     if not output_dir:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         output_dir = f"jseye_output_{timestamp}"
     
     # Ensure output directory is relative to current working directory
@@ -629,11 +626,6 @@ def print_scan_summary(scan_results: List[Dict[str, Any]]):
 
 def print_enhanced_summary(result: Dict[str, Any]):
     """Print enhanced summary with additional details."""
-    from rich.panel import Panel
-    from rich.columns import Columns
-    
-    target = result.get('target', 'Unknown')
-    
     # Google API Key Validation Results
     google_api_keys = result.get('statistics', {}).get('google_api_keys', {})
     if google_api_keys and google_api_keys.get('total_found', 0) > 0:
@@ -653,7 +645,7 @@ def print_enhanced_summary(result: Dict[str, Any]):
     # API Keys found
     api_key_findings = result.get('api_key_findings', [])
     if api_key_findings:
-        console.print(f"\n[bold red][!] API Keys Found in URLs:[/bold red]")
+        console.print("\n[bold red][!] API Keys Found in URLs:[/bold red]")
         for finding in api_key_findings[:5]:  # Show first 5
             console.print(f"  [*] Parameter: [yellow]{finding.get('parameter')}[/yellow]")
             console.print(f"    Value: [red]{finding.get('value', '')[:50]}...[/red]")
@@ -661,7 +653,7 @@ def print_enhanced_summary(result: Dict[str, Any]):
     # Libraries detected
     version_analysis = result.get('version_analysis', {})
     if version_analysis and version_analysis.get('total_libraries', 0) > 0:
-        console.print(f"\n[bold cyan][*] Libraries Detected:[/bold cyan]")
+        console.print("\n[bold cyan][*] Libraries Detected:[/bold cyan]")
         by_library = version_analysis.get('by_library', {})
         for lib in sorted(version_analysis.get('unique_libraries', []))[:10]:
             versions = by_library.get(lib, [])
@@ -671,7 +663,7 @@ def print_enhanced_summary(result: Dict[str, Any]):
     # CVE Results
     cve_results = result.get('cve_results', {})
     if cve_results and cve_results.get('total_cves', 0) > 0:
-        console.print(f"\n[bold red]🔴 Vulnerabilities Found:[/bold red]")
+        console.print("\n[bold red]🔴 Vulnerabilities Found:[/bold red]")
         console.print(f"  Total CVEs: {cve_results['total_cves']}")
         console.print(f"  Critical: {cve_results.get('critical', 0)}")
         console.print(f"  High: {cve_results.get('high', 0)}")
@@ -681,7 +673,7 @@ def print_enhanced_summary(result: Dict[str, Any]):
         # Show vulnerable libraries
         vulnerabilities = cve_results.get('vulnerabilities', [])
         if vulnerabilities:
-            console.print(f"\n  [yellow]Vulnerable Libraries:[/yellow]")
+            console.print("\n  [yellow]Vulnerable Libraries:[/yellow]")
             for vuln in vulnerabilities[:5]:  # Show first 5
                 lib = vuln.get('library', 'unknown')
                 ver = vuln.get('version', 'unknown')
@@ -695,7 +687,7 @@ def print_enhanced_summary(result: Dict[str, Any]):
         vulnerable_deps = dep_analysis.get('vulnerable_dependencies', [])
         
         if stats.get('vulnerable_count', 0) > 0:
-            console.print(f"\n[bold red]⚠️  Dependency Confusion Risks:[/bold red]")
+            console.print("\n[bold red]⚠️  Dependency Confusion Risks:[/bold red]")
             console.print(f"  Total Dependencies: {stats.get('total_dependencies', 0)}")
             console.print(f"  Vulnerable: {stats['vulnerable_count']}")
             console.print(f"  Critical: {stats.get('critical_count', 0)}")
@@ -705,7 +697,7 @@ def print_enhanced_summary(result: Dict[str, Any]):
             
             # Show top vulnerable dependencies
             if vulnerable_deps:
-                console.print(f"\n  [yellow]Top Vulnerable Dependencies:[/yellow]")
+                console.print("\n  [yellow]Top Vulnerable Dependencies:[/yellow]")
                 for dep in vulnerable_deps[:5]:  # Show first 5
                     name = dep.get('name', 'unknown')
                     severity = dep.get('severity', 'UNKNOWN')
@@ -721,7 +713,7 @@ def print_enhanced_summary(result: Dict[str, Any]):
         if api_analysis:
             by_classification = api_analysis.get('by_classification', {})
             if by_classification:
-                console.print(f"  [cyan]By Type:[/cyan]")
+                console.print("  [cyan]By Type:[/cyan]")
                 for api_type, count in sorted(by_classification.items(), key=lambda x: x[1], reverse=True)[:5]:
                     console.print(f"    • {api_type}: {count}")
     
@@ -740,7 +732,7 @@ def print_enhanced_summary(result: Dict[str, Any]):
             path = spec.get('path', '')
             console.print(f"  • {path} (v{version}): {endpoint_count} endpoints")
             if by_classification:
-                console.print(f"  [cyan]By Type:[/cyan]")
+                console.print("  [cyan]By Type:[/cyan]")
                 for api_type, count in sorted(by_classification.items(), key=lambda x: x[1], reverse=True)[:5]:
                     console.print(f"    [+] {api_type}: {count}")
     
@@ -753,7 +745,7 @@ def print_enhanced_summary(result: Dict[str, Any]):
     # API Documentation
     api_docs = result.get('api_documentation', [])
     if api_docs:
-        console.print(f"\n[bold magenta][*] API Documentation:[/bold magenta]")
+        console.print("\n[bold magenta][*] API Documentation:[/bold magenta]")
         for doc in api_docs[:3]:
             console.print(f"  [+] {doc}")
 
@@ -1067,7 +1059,7 @@ async def main():
                 
                 # Print comparison summary
                 diff = comparison_result['differences']
-                console.print(f"\n[cyan]Comparison Summary:[/cyan]")
+                console.print("\n[cyan]Comparison Summary:[/cyan]")
                 console.print(f"Target 1 ({target1}): {diff['secrets']['target1_count']} secrets, {diff['vulnerabilities']['target1_count']} vulnerabilities")
                 console.print(f"Target 2 ({target2}): {diff['secrets']['target2_count']} secrets, {diff['vulnerabilities']['target2_count']} vulnerabilities")
                 console.print(f"Risk trend: {comparison_result['risk_delta']['overall_risk_change']}")
@@ -1236,7 +1228,7 @@ async def main():
                 console.print("  - HTML report - Human-readable analysis")
             
             console.print("\n[bold yellow]Next Steps:[/bold yellow]")
-            console.print(f"  1. Review actionable findings in the HTML report")
+            console.print("  1. Review actionable findings in the HTML report")
             console.print(f"  2. Run: ffuf -u FUZZ -w {output_dir}/wordlist_endpoints.txt")
             console.print(f"  3. Import {output_dir}/burp_sitemap.xml into Burp Suite")
             console.print(f"  4. Execute: nuclei -t {output_dir}/nuclei_templates.yaml")

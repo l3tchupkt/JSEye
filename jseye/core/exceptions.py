@@ -1,6 +1,6 @@
 """Custom exception hierarchy for JSEye v2."""
 
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 
 class JSEyeException(Exception):
@@ -14,7 +14,6 @@ class JSEyeException(Exception):
 
 class JSEyeConfigurationError(JSEyeException):
     """Raised when there's a configuration error."""
-    pass
 
 
 class JSEyeNetworkError(JSEyeException):

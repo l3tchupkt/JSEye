@@ -1,9 +1,12 @@
 """HTML report generation for JSEye results."""
 
+import html
 import os
-from datetime import datetime
-from typing import Dict, Any
+from datetime import datetime, timezone
+from typing import Any, Dict
+
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+
 from ..version import __version__
 
 
@@ -39,7 +42,7 @@ class HTMLReportGenerator:
                     with open(output_file, 'w', encoding='utf-8') as f:
                         f.write(html_content)
                 except Exception as e:
-                    raise Exception(f"Failed to write HTML report: {str(e)}")
+                    raise Exception(f"Failed to write HTML report: {e!s}")
             
             return html_content
             
@@ -77,7 +80,7 @@ class HTMLReportGenerator:
         
         template_data = {
             'target': scan_results.get('target', 'Unknown'),
-            'generated_at': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC'),
+            'generated_at': datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC'),
             'jseye_version': __version__,
             'report_version': self.report_version,
             'summary': summary,
@@ -249,11 +252,11 @@ class HTMLReportGenerator:
 <body>
     <div class="header">
         <h1>JSEye Security Report</h1>
-        <p>Target: {target}</p>
-        <p>Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
+        <p>Target: {html.escape(str(target))}</p>
+        <p>Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
     </div>
     
-    {f'<div class="section"><h2>Template Error</h2><p>{error_msg}</p></div>' if error_msg else ''}
+    {f'<div class="section"><h2>Template Error</h2><p>{html.escape(str(error_msg))}</p></div>' if error_msg else ''}
     
     <div class="section">
         <h2>Summary</h2>
@@ -271,12 +274,16 @@ class HTMLReportGenerator:
         
         for secret in secrets[:20]:  # Limit for basic report
             risk_level = secret.get('risk_level', 'Low')
+            s_desc = html.escape(str(secret.get('description', 'Unknown')))
+            s_risk = html.escape(str(risk_level))
+            s_source = html.escape(str(secret.get('source_file', 'Unknown')[:50]))
+            s_val = html.escape(str(secret.get('value_masked', '***')))
             html += f"""
             <tr>
-                <td>{secret.get('description', 'Unknown')}</td>
-                <td class="{risk_level.lower()}">{risk_level}</td>
-                <td>{secret.get('source_file', 'Unknown')[:50]}...</td>
-                <td><code>{secret.get('value_masked', '***')}</code></td>
+                <td>{s_desc}</td>
+                <td class="{html.escape(risk_level.lower())}">{s_risk}</td>
+                <td>{s_source}...</td>
+                <td><code>{s_val}</code></td>
             </tr>
             """
         
@@ -290,7 +297,8 @@ class HTMLReportGenerator:
         """
         
         for endpoint in endpoints[:50]:  # Limit for basic report
-            html += f"<li>{endpoint}</li>"
+            ep_str = endpoint.get('url', str(endpoint)) if isinstance(endpoint, dict) else str(endpoint)
+            html += f"<li>{html.escape(ep_str)}</li>"
         
         html += """
         </ul>
@@ -341,8 +349,8 @@ class HTMLReportGenerator:
 <body>
     <div class="header">
         <h1>[*] JSEye Executive Summary</h1>
-        <h2>{target}</h2>
-        <p>Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
+        <h2>{html.escape(str(target))}</h2>
+        <p>Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
     </div>
     
     <div class="summary-grid">

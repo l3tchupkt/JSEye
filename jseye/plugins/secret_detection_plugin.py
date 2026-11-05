@@ -1,10 +1,19 @@
 """Secret Detection Plugin for JSEye v2.0."""
 
 import asyncio
-from typing import Dict, List, Any
-from jseye.plugins.base import BasePlugin, PluginMetadata, PluginContext, PluginResult, PluginCategory, ExploitationLikelihood, ExposureLevel
-from jseye.core.secret_engine import SecretDetector
+from typing import Any, Dict, List
+
 from jseye.core.logging import get_logger
+from jseye.core.secret_engine import SecretDetector
+from jseye.plugins.base import (
+    BasePlugin,
+    ExploitationLikelihood,
+    ExposureLevel,
+    PluginCategory,
+    PluginContext,
+    PluginMetadata,
+    PluginResult,
+)
 
 logger = get_logger(__name__)
 
@@ -130,7 +139,7 @@ class SecretDetectionPlugin(BasePlugin):
                         all_secrets.append(secret)
                         
                 except Exception as e:
-                    error_msg = f"Secret detection failed for {js_file.get('url', 'unknown')}: {str(e)}"
+                    error_msg = f"Secret detection failed for {js_file.get('url', 'unknown')}: {e!s}"
                     result.errors.append(error_msg)
                     logger.warning(error_msg)
             
@@ -157,7 +166,7 @@ class SecretDetectionPlugin(BasePlugin):
                        high_risk=len([s for s in all_secrets if s.get('risk_level') == 'Critical']))
             
         except Exception as e:
-            error_msg = f"Secret detection plugin failed: {str(e)}"
+            error_msg = f"Secret detection plugin failed: {e!s}"
             result.errors.append(error_msg)
             logger.error(error_msg, target=context.target)
         

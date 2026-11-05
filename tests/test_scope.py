@@ -1,5 +1,5 @@
-import pytest
 from jseye.core.scope import ScopeEngine
+
 
 def test_scope_derivation():
     engine = ScopeEngine("https://example.com")

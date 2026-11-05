@@ -11,26 +11,24 @@ Run with:
 """
 
 import asyncio
-import sys
-import os
 import json
+import os
+import sys
 import unittest
-from unittest.mock import patch, MagicMock
 import urllib.error
+from unittest.mock import MagicMock, patch
 
 # Make sure the workspace root is on the path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from jseye.core.google_api_validator import (
+    VALIDATION_URL,
+    _mask_key,
     extract_google_api_keys,
     validate_google_api_key,
-    _mask_key,
-    GOOGLE_API_KEY_PATTERN,
-    VALIDATION_URL,
 )
-from jseye.plugins.google_api_key_plugin import GoogleAPIKeyPlugin
 from jseye.plugins.base import PluginContext
-
+from jseye.plugins.google_api_key_plugin import GoogleAPIKeyPlugin
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -588,8 +586,8 @@ class TestSecretDetectionUnaffected(unittest.TestCase):
         mock_resp.__exit__ = MagicMock(return_value=False)
         mock_urlopen.return_value = mock_resp
 
-        from jseye.plugins.secret_detection_plugin import SecretDetectionPlugin
         from jseye.plugins.google_api_key_plugin import GoogleAPIKeyPlugin
+        from jseye.plugins.secret_detection_plugin import SecretDetectionPlugin
 
         ctx = make_context([{
             "url": "https://example.com/app.js",

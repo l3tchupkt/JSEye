@@ -1,11 +1,10 @@
 """Enhanced logging system for JSEye v2."""
 
-import logging
 import json
+import logging
 import sys
 from datetime import datetime
-from typing import Dict, Any, Optional
-from pathlib import Path
+from typing import Any, Dict, Optional
 
 
 class JSEyeFormatter(logging.Formatter):
@@ -64,9 +63,7 @@ class JSEyeLogger:
             return
         
         # Set level
-        if trace:
-            log_level = logging.DEBUG
-        elif debug:
+        if trace or debug:
             log_level = logging.DEBUG
         else:
             log_level = getattr(logging, level.upper(), logging.INFO)

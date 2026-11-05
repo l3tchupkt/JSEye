@@ -5,10 +5,11 @@ Creates standard Python packages with correct metadata
 """
 
 import os
-import sys
 import shutil
 import subprocess
+import sys
 from pathlib import Path
+
 
 def print_header(text):
     """Print a header."""
@@ -245,7 +246,9 @@ def check_package():
 
 def main():
     """Main build function."""
-    print_header("JSEye Build Script v2.0")
+    # Ensure working directory is project root
+    os.chdir(Path(__file__).resolve().parent.parent)
+    print_header("JSEye Build Script")
     
     # Clean first
     clean_build()
@@ -284,7 +287,7 @@ def main():
         return 1
     
     print_header("BUILD COMPLETED SUCCESSFULLY")
-    print("[+] JSEye v{} is ready for PyPI distribution!".format(version))
+    print(f"[+] JSEye v{version} is ready for PyPI distribution!")
     print("[*] Built packages are in the 'dist/' directory")
     print("[*] To upload to PyPI: python -m twine upload dist/*")
     print("[*] To upload to Test PyPI: python -m twine upload --repository testpypi dist/*")

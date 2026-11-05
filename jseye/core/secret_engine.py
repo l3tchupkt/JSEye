@@ -1,15 +1,14 @@
 """Enhanced secret detection engine v2 with multi-factor scoring and validation."""
 
-import json
-import re
-import os
 import base64
-from typing import List, Dict, Any, Optional, Tuple
-from .entropy import EntropyAnalyzer
-from .utils import mask_secret, extract_secrets_context
-from .logging import get_logger
+import json
+import os
+import re
+from typing import Any, Dict, List
 
+from .entropy import EntropyAnalyzer
 from .logging import get_logger
+from .utils import extract_secrets_context
 
 logger = get_logger(__name__)
 
@@ -145,7 +144,7 @@ class SecretDetector:
                     
                     secrets.append(secret)
                     
-            except re.error as e:
+            except re.error:
                 # Skip invalid regex patterns
                 continue
         
@@ -159,9 +158,13 @@ class SecretDetector:
         high_entropy_strings = self.entropy_analyzer.extract_high_entropy_strings(content)
         
         for entropy_data in high_entropy_strings:
-            entropy_str = entropy_data['value']
-            entropy_score = entropy_data['entropy']
-            metrics = entropy_data['metrics']
+            entropy_str = entropy_data.get('value', '')
+            entropy_score = entropy_data.get('entropy', 0.0)
+            metrics = entropy_data.get('metrics', {
+                'entropy': entropy_score,
+                'length': entropy_data.get('length', len(entropy_str)),
+                'reason': entropy_data.get('reason', '')
+            })
             
             # Skip if already detected by patterns
             if self._is_already_detected(entropy_str, secrets):
@@ -189,12 +192,12 @@ class SecretDetector:
                 'value': entropy_str,
                 'masked_value': v3_mask_secret(entropy_str),
                 'confidence_score': float(confidence),
-                'severity': 'medium',
+                'severity': severity,
                 'confidence': confidence,
                 'source': 'entropy_analysis',
                 'file_or_url': source_file,
                 'source_file': source_file,
-                'context': extract_secrets_context(content, entropy_str),
+                'context': context,
                 'metrics': metrics,
                 'validated': False,
                 'used_in_request': False
@@ -322,8 +325,8 @@ class SecretDetector:
             rf'axios\.[a-z]+\s*\([^)]*{re.escape(secret_substr)}[^)]*\)',
             rf'XMLHttpRequest[^}}]*{re.escape(secret_substr)}',
             # Also check for variable usage in fetch
-            rf'fetch\s*\([^)]*apiKey[^)]*\)',
-            rf'axios\.[a-z]+\s*\([^)]*apiKey[^)]*\)',
+            r'fetch\s*\([^)]*apiKey[^)]*\)',
+            r'axios\.[a-z]+\s*\([^)]*apiKey[^)]*\)',
             rf'headers[^}}]*{re.escape(secret_substr)}',
             rf'Authorization[^}}]*{re.escape(secret_substr)}',
         ]
@@ -388,13 +391,17 @@ class SecretDetector:
             return False
         
         try:
-            # Try to decode header and payload (not signature)
-            header = base64.b64decode(parts[0] + '==')
-            payload = base64.b64decode(parts[1] + '==')
+            def _decode_b64url(s: str) -> bytes:
+                s = s.replace('-', '+').replace('_', '/')
+                padding = (4 - len(s) % 4) % 4
+                return base64.b64decode(s + '=' * padding)
+
+            header = _decode_b64url(parts[0])
+            payload = _decode_b64url(parts[1])
             
             # Check if they're valid JSON
-            json.loads(header)
-            json.loads(payload)
+            json.loads(header.decode('utf-8'))
+            json.loads(payload.decode('utf-8'))
             return True
         except Exception:
             return False
@@ -440,14 +447,14 @@ class SecretDetector:
         return min(penalty, 0.5)  # Cap penalty
     
     def _validate_secret(self, secret: Dict[str, Any]) -> bool:
-        """Enhanced validation layer returning bool. Also sets 'validated' flag."""
+        """Validate candidate secret format. Static matches are NOT marked live-validated."""
         is_valid = self._perform_validation_check(secret)
-        secret['validated'] = is_valid
+        secret['format_valid'] = is_valid
+        secret['validated'] = secret.get('live_verified', False)
         return is_valid
 
     def _perform_validation_check(self, secret: Dict[str, Any]) -> bool:
         """Perform actual format validation checks."""
-        secret_type = secret.get('type', '')
         value = secret.get('value', '')
         enhanced_confidence = secret.get('enhanced_confidence', secret.get('confidence', 0))
         
@@ -456,12 +463,11 @@ class SecretDetector:
             return False
         
         # Length checks
-        secret_value = secret.get('value', '')
-        if len(secret_value) < 4 or len(secret_value) > 500:
+        if len(value) < 4 or len(value) > 500:
             return False
         
         # Skip very common patterns
-        if secret_value.lower() in ['test', 'example', 'demo', 'sample', 'key', 'token', 'secret']:
+        if value.lower() in ['test', 'example', 'demo', 'sample', 'key', 'token', 'secret']:
             return False
         
         return True

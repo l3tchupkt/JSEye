@@ -3,12 +3,16 @@ Additional Discovery Features
 CSS analysis, HTML parsing, robots.txt, sitemap.xml, and more
 """
 
-import asyncio
-import aiohttp
 import re
-from typing import List, Dict, Any, Set
-from urllib.parse import urljoin, urlparse
-from xml.etree import ElementTree as ET
+from typing import Any, Dict, List
+from urllib.parse import urljoin
+
+import aiohttp
+
+try:
+    import defusedxml.ElementTree as ET
+except ImportError:
+    from xml.etree import ElementTree as ET  # nosec B405
 
 
 class AdditionalDiscovery:
@@ -22,35 +26,34 @@ class AdditionalDiscovery:
         try:
             robots_url = urljoin(base_url, '/robots.txt')
             
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    robots_url,
-                    timeout=aiohttp.ClientTimeout(total=self.timeout),
-                    headers={'User-Agent': 'Mozilla/5.0'}
-                ) as response:
-                    if response.status == 200:
-                        content = await response.text()
-                        
-                        # Extract disallowed paths (often interesting)
-                        disallowed = re.findall(r'Disallow:\s*(.+)', content, re.IGNORECASE)
-                        
-                        # Extract sitemaps
-                        sitemaps = re.findall(r'Sitemap:\s*(.+)', content, re.IGNORECASE)
-                        
-                        # Convert to full URLs
-                        urls = []
-                        for path in disallowed:
-                            path = path.strip()
-                            if path and path != '/':
-                                full_url = urljoin(base_url, path)
-                                urls.append(full_url)
-                        
-                        return {
-                            'success': True,
-                            'urls': urls,
-                            'sitemaps': [s.strip() for s in sitemaps],
-                            'disallowed_count': len(disallowed)
-                        }
+            async with aiohttp.ClientSession() as session, session.get(
+                robots_url,
+                timeout=aiohttp.ClientTimeout(total=self.timeout),
+                headers={'User-Agent': 'Mozilla/5.0'}
+            ) as response:
+                if response.status == 200:
+                    content = await response.text()
+                    
+                    # Extract disallowed paths (often interesting)
+                    disallowed = re.findall(r'Disallow:\s*(.+)', content, re.IGNORECASE)
+                    
+                    # Extract sitemaps
+                    sitemaps = re.findall(r'Sitemap:\s*(.+)', content, re.IGNORECASE)
+                    
+                    # Convert to full URLs
+                    urls = []
+                    for path in disallowed:
+                        path = path.strip()
+                        if path and path != '/':
+                            full_url = urljoin(base_url, path)
+                            urls.append(full_url)
+                    
+                    return {
+                        'success': True,
+                        'urls': urls,
+                        'sitemaps': [s.strip() for s in sitemaps],
+                        'disallowed_count': len(disallowed)
+                    }
         except Exception:
             pass
         
@@ -61,38 +64,37 @@ class AdditionalDiscovery:
         urls = []
         
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    sitemap_url,
-                    timeout=aiohttp.ClientTimeout(total=self.timeout),
-                    headers={'User-Agent': 'Mozilla/5.0'}
-                ) as response:
-                    if response.status == 200:
-                        content = await response.text()
+            async with aiohttp.ClientSession() as session, session.get(
+                sitemap_url,
+                timeout=aiohttp.ClientTimeout(total=self.timeout),
+                headers={'User-Agent': 'Mozilla/5.0'}
+            ) as response:
+                if response.status == 200:
+                    content = await response.text()
+                    
+                    # Parse XML
+                    try:
+                        root = ET.fromstring(content)  # nosec B314
                         
-                        # Parse XML
-                        try:
-                            root = ET.fromstring(content)
-                            
-                            # Handle different sitemap formats
-                            namespaces = {
-                                'sm': 'http://www.sitemaps.org/schemas/sitemap/0.9'
-                            }
-                            
-                            # Find all <loc> tags
-                            for loc in root.findall('.//sm:loc', namespaces):
+                        # Handle different sitemap formats
+                        namespaces = {
+                            'sm': 'http://www.sitemaps.org/schemas/sitemap/0.9'
+                        }
+                        
+                        # Find all <loc> tags
+                        for loc in root.findall('.//sm:loc', namespaces):
+                            if loc.text:
+                                urls.append(loc.text.strip())
+                        
+                        # Also try without namespace
+                        if not urls:
+                            for loc in root.findall('.//loc'):
                                 if loc.text:
                                     urls.append(loc.text.strip())
-                            
-                            # Also try without namespace
-                            if not urls:
-                                for loc in root.findall('.//loc'):
-                                    if loc.text:
-                                        urls.append(loc.text.strip())
-                        except Exception:
-                            # Try regex fallback
-                            url_matches = re.findall(r'<loc>([^<]+)</loc>', content)
-                            urls.extend(url_matches)
+                    except Exception:
+                        # Try regex fallback
+                        url_matches = re.findall(r'<loc>([^<]+)</loc>', content)
+                        urls.extend(url_matches)
         except Exception:
             pass
         

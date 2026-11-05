@@ -1,8 +1,9 @@
-import pytest
-import asyncio
 from unittest.mock import AsyncMock, patch
 
+import pytest
+
 from jseye.core.plugin_crawler import PluginBasedCrawler
+
 
 @pytest.fixture
 def crawler():

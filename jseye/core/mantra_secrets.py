@@ -4,11 +4,11 @@ Specialized tool for finding secrets in JavaScript files
 """
 
 import asyncio
-import subprocess
 import json
-import tempfile
 import os
-from typing import List, Dict, Any
+import subprocess
+import tempfile
+from typing import Any, Dict, List
 
 
 class MantraSecretScanner:

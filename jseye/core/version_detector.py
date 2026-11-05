@@ -3,9 +3,9 @@ Dynamic Version Detection for JavaScript Libraries and Frameworks
 Detects versions from multiple sources using dynamic patterns
 """
 
-import re
 import json
-from typing import List, Dict, Any, Set
+import re
+from typing import Any, Dict, List
 
 
 class VersionDetector:

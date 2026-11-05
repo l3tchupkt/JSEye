@@ -1,10 +1,19 @@
 """CVE Intelligence Plugin for JSEye v2.0."""
 
 import asyncio
-from typing import Dict, List, Any
-from jseye.plugins.base import BasePlugin, PluginMetadata, PluginContext, PluginResult, PluginCategory, ExploitationLikelihood, ExposureLevel
+from typing import Any, Dict, List
+
 from jseye.core.cve_engine import CVEIntelligenceEngine
 from jseye.core.logging import get_logger
+from jseye.plugins.base import (
+    BasePlugin,
+    ExploitationLikelihood,
+    ExposureLevel,
+    PluginCategory,
+    PluginContext,
+    PluginMetadata,
+    PluginResult,
+)
 
 logger = get_logger(__name__)
 
@@ -179,7 +188,7 @@ class CVEIntelligencePlugin(BasePlugin):
                            critical_cves=critical_cves)
                 
         except Exception as e:
-            error_msg = f"CVE intelligence plugin failed: {str(e)}"
+            error_msg = f"CVE intelligence plugin failed: {e!s}"
             result.errors.append(error_msg)
             logger.error(error_msg, target=context.target)
         
@@ -242,7 +251,7 @@ class CVEIntelligencePlugin(BasePlugin):
         library_version = library_info.get('version', 'Unknown')
         cve_id = cve.get('id', 'Unknown')
         
-        advice = f"Vulnerable Library Remediation:\n\n"
+        advice = "Vulnerable Library Remediation:\n\n"
         advice += f"Library: {library_name} v{library_version}\n"
         advice += f"CVE: {cve_id}\n"
         advice += f"Severity: {cve.get('severity', 'Unknown')}\n\n"

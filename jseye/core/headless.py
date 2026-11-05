@@ -1,8 +1,8 @@
 """Headless browser integration for dynamic JavaScript analysis."""
 
 import asyncio
-from typing import List, Dict, Any, Optional
 import json
+from typing import Any, Dict, List
 
 
 class HeadlessBrowser:
@@ -16,11 +16,8 @@ class HeadlessBrowser:
         
     def _check_playwright(self) -> bool:
         """Check if Playwright is available."""
-        try:
-            import playwright
-            return True
-        except ImportError:
-            return False
+        import importlib.util
+        return importlib.util.find_spec('playwright') is not None
     
     async def __aenter__(self):
         """Async context manager entry."""
@@ -49,7 +46,7 @@ class HeadlessBrowser:
                 viewport={'width': 1920, 'height': 1080}
             )
             
-        except Exception as e:
+        except Exception:
             self.playwright_available = False
         
         return self
@@ -204,7 +201,7 @@ class HeadlessBrowser:
             # Navigate to the page
             try:
                 await page.goto(url, timeout=self.timeout * 1000, wait_until='networkidle')
-            except Exception as e:
+            except Exception:
                 # Try with a shorter timeout and different wait condition
                 try:
                     await page.goto(url, timeout=15000, wait_until='domcontentloaded')

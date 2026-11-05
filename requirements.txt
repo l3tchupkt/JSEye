@@ -1,4 +1,4 @@
-# Core dependencies for JSEye v2.0
+# Core dependencies for JSEye
 aiohttp>=3.8.0
 beautifulsoup4>=4.11.0
 lxml>=4.9.0

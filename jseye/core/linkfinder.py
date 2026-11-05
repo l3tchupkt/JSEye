@@ -4,8 +4,9 @@ Extracts endpoints and paths from JavaScript files
 """
 
 import re
+from typing import Any, Dict, List
+
 import jsbeautifier
-from typing import List, Dict, Any
 
 
 class LinkFinder:

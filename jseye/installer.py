@@ -1,12 +1,13 @@
 """Tool installer and dependency manager."""
 
 import asyncio
-import subprocess
-import sys
 import os
-from typing import Dict, List, Optional
+import sys
+from typing import Dict, List
+
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
+
 from .os_detect import OSDetector
 
 console = Console()
@@ -56,7 +57,7 @@ class ToolInstaller:
                     console.print(f"[green][+] Successfully installed: {', '.join(packages)}")
                     return True
                 else:
-                    console.print(f"[red][-] Failed to install packages")
+                    console.print("[red][-] Failed to install packages")
                     if stderr:
                         console.print(f"[red]Error: {stderr.decode()}")
                     return False
@@ -493,8 +494,8 @@ class ToolInstaller:
     async def _install_go_linux(self) -> bool:
         """Install Go on Linux."""
         try:
-            import tempfile
             import os
+            import tempfile
             
             # Determine architecture
             arch_map = {'x86_64': 'amd64', 'aarch64': 'arm64'}
@@ -598,7 +599,6 @@ class ToolInstaller:
         try:
             import tempfile
             import urllib.request
-            import subprocess
             
             # Determine architecture
             arch = 'amd64' if '64' in self.os_detector.arch else '386'
@@ -630,7 +630,9 @@ class ToolInstaller:
     async def install_playwright(self) -> bool:
         """Install Playwright browsers if needed."""
         try:
-            import playwright
+            import importlib.util
+            if not importlib.util.find_spec('playwright'):
+                return False
             
             console.print("[yellow]Installing Playwright browsers...")
             
@@ -751,8 +753,5 @@ class ToolInstaller:
     
     def can_run_headless(self) -> bool:
         """Check if headless mode is available."""
-        try:
-            import playwright
-            return True
-        except ImportError:
-            return False
+        import importlib.util
+        return importlib.util.find_spec('playwright') is not None

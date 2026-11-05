@@ -3,10 +3,10 @@
 import csv
 import json
 import xml.etree.ElementTree as ET
-from typing import Dict, List, Any, Optional, Set
-from urllib.parse import urlparse, parse_qs, urlencode
-from pathlib import Path
+from typing import Dict, Any
+from urllib.parse import urlparse, parse_qs
 from .logging import get_logger
+from ..version import __version__
 
 logger = get_logger(__name__)
 
@@ -69,6 +69,11 @@ class ExportEngine:
                         param_name = param.get('name', param.get('parameter', ''))
                         if param_name and len(param_name) > 1:
                             wordlist_items.add(param_name)
+                    elif isinstance(param, str):
+                        wordlist_items.add(param)
+            elif isinstance(parameters, dict):
+                for k in parameters.keys():
+                    wordlist_items.add(str(k))
             
             # 4. Extract from API endpoints
             api_endpoints = scan_results.get('api_endpoints', [])
@@ -229,26 +234,26 @@ class ExportEngine:
                 
                 # 2. File fuzzing with extensions
                 f.write("# === FILE FUZZING ===\n")
-                f.write(f"echo \"[*] Fuzzing files with extensions\"\n")
+                f.write("echo \"[*] Fuzzing files with extensions\"\n")
                 f.write(f"ffuf -u '{base_domain}/FUZZ' -w $WORDLIST -e .js,.json,.xml,.txt,.php,.asp,.aspx,.jsp,.bak,.old,.zip -mc 200,204,301,302,307,401,403 -t $THREADS -rate $RATE -o ffuf_files.json\n\n")
                 
                 # 3. API endpoint fuzzing
                 f.write("# === API ENDPOINT FUZZING ===\n")
-                f.write(f"echo \"[*] Fuzzing API endpoints\"\n")
+                f.write("echo \"[*] Fuzzing API endpoints\"\n")
                 f.write(f"ffuf -u '{base_domain}/api/FUZZ' -w $WORDLIST -mc 200,204,301,302,307,401,403,405 -t $THREADS -rate $RATE -o ffuf_api.json\n")
                 f.write(f"ffuf -u '{base_domain}/v1/FUZZ' -w $WORDLIST -mc 200,204,301,302,307,401,403,405 -t $THREADS -rate $RATE -o ffuf_v1.json\n")
                 f.write(f"ffuf -u '{base_domain}/api/v1/FUZZ' -w $WORDLIST -mc 200,204,301,302,307,401,403,405 -t $THREADS -rate $RATE -o ffuf_api_v1.json\n\n")
                 
                 # 4. Parameter fuzzing
                 f.write("# === PARAMETER FUZZING ===\n")
-                f.write(f"echo \"[*] Fuzzing GET parameters\"\n")
+                f.write("echo \"[*] Fuzzing GET parameters\"\n")
                 f.write(f"ffuf -u '{base_domain}/?FUZZ=test' -w $WORDLIST -mc 200,204,301,302,307,401,403,500 -t $THREADS -rate $RATE -o ffuf_params.json\n\n")
                 
                 # 5. Discovered endpoints fuzzing
                 linkfinder_endpoints = scan_results.get('linkfinder_endpoints', [])
                 if linkfinder_endpoints:
                     f.write("# === DISCOVERED ENDPOINTS FUZZING ===\n")
-                    f.write(f"echo \"[*] Fuzzing discovered endpoints\"\n")
+                    f.write("echo \"[*] Fuzzing discovered endpoints\"\n")
                     
                     seen_paths = set()
                     for endpoint in linkfinder_endpoints[:20]:  # Top 20
@@ -267,7 +272,7 @@ class ExportEngine:
                 api_endpoints = scan_results.get('api_endpoints', [])
                 if api_endpoints:
                     f.write("# === API ENDPOINTS FROM DETECTION ===\n")
-                    f.write(f"echo \"[*] Testing detected API endpoints\"\n")
+                    f.write("echo \"[*] Testing detected API endpoints\"\n")
                     
                     for api_ep in api_endpoints[:15]:  # Top 15
                         if isinstance(api_ep, dict):
@@ -282,7 +287,7 @@ class ExportEngine:
                 
                 # 7. Admin/sensitive paths
                 f.write("# === ADMIN & SENSITIVE PATHS ===\n")
-                f.write(f"echo \"[*] Fuzzing admin and sensitive paths\"\n")
+                f.write("echo \"[*] Fuzzing admin and sensitive paths\"\n")
                 sensitive_paths = ['/admin', '/administrator', '/panel', '/dashboard', '/console', '/manage']
                 for path in sensitive_paths:
                     f.write(f"ffuf -u '{base_domain}{path}/FUZZ' -w $WORDLIST -mc 200,204,301,302,307,401,403 -t $THREADS -rate $RATE\n")
@@ -290,19 +295,19 @@ class ExportEngine:
                 
                 # 8. Backup/config files
                 f.write("# === BACKUP & CONFIG FILES ===\n")
-                f.write(f"echo \"[*] Searching for backup and config files\"\n")
+                f.write("echo \"[*] Searching for backup and config files\"\n")
                 f.write(f"ffuf -u '{base_domain}/FUZZ' -w $WORDLIST -e .bak,.old,.backup,.zip,.tar,.tar.gz,.sql,.db,.config,.conf,.env -mc 200,204,301,302,307,401,403 -t $THREADS -rate $RATE -o ffuf_backups.json\n\n")
                 
                 # 9. Source maps
                 f.write("# === SOURCE MAPS ===\n")
-                f.write(f"echo \"[*] Searching for source maps\"\n")
+                f.write("echo \"[*] Searching for source maps\"\n")
                 f.write(f"ffuf -u '{base_domain}/FUZZ.js.map' -w $WORDLIST -mc 200,204 -t $THREADS -rate $RATE -o ffuf_sourcemaps.json\n\n")
                 
                 f.write("echo \"[+] ffuf fuzzing complete! Check output files for results.\"\n")
             
             # Make executable
             import os
-            os.chmod(output_file, 0o755)
+            os.chmod(output_file, 0o755)  # nosec B103
             
             logger.info(f"Comprehensive ffuf commands exported to {output_file}")
             return True
@@ -324,7 +329,7 @@ class ExportEngine:
                 f.write("#!/bin/bash\n")
                 f.write("# JSEye Comprehensive cURL Test Commands\n")
                 f.write(f"# Target: {target}\n")
-                f.write("# Generated by JSEye v3.0.1\n")
+                f.write(f"# Generated by JSEye v{__version__}\n")
                 f.write("#\n")
                 f.write("# Usage: bash this_file.sh\n")
                 f.write("#\n\n")
@@ -337,8 +342,8 @@ class ExportEngine:
                 
                 # 1. Base URL test
                 f.write("# === BASE URL TEST ===\n")
-                f.write(f"echo -e \"${{YELLOW}}[*] Testing base URL${{NC}}\"\n")
-                f.write(f"curl -X GET '{base_url}' -H 'User-Agent: JSEye/3.0.1' -H 'Accept: */*' -i -s -o /dev/null -w \"Status: %{{http_code}} | Size: %{{size_download}} bytes\\n\"\n\n")
+                f.write("echo -e \"${YELLOW}[*] Testing base URL${NC}\"\n")
+                f.write(f"curl -X GET '{base_url}' -H 'User-Agent: JSEye/{__version__}' -H 'Accept: */*' -i -s -o /dev/null -w \"Status: %{{http_code}} | Size: %{{size_download}} bytes\\n\"\n\n")
                 
                 # 2. API endpoints from detection
                 api_endpoints = scan_results.get('api_endpoints', [])
@@ -362,11 +367,11 @@ class ExportEngine:
                                 
                                 f.write(f"# {idx}. {classification}: {ep}\n")
                                 if method == 'GET':
-                                    f.write(f"curl -X GET '{full_url}' -H 'User-Agent: JSEye/3.0.1' -H 'Accept: application/json' -i -s\n\n")
+                                    f.write(f"curl -X GET '{full_url}' -H 'User-Agent: JSEye/{__version__}' -H 'Accept: application/json' -i -s\n\n")
                                 elif method == 'POST':
-                                    f.write(f"curl -X POST '{full_url}' -H 'User-Agent: JSEye/3.0.1' -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{{}}' -i -s\n\n")
+                                    f.write(f"curl -X POST '{full_url}' -H 'User-Agent: JSEye/{__version__}' -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{{}}' -i -s\n\n")
                                 else:
-                                    f.write(f"curl -X {method} '{full_url}' -H 'User-Agent: JSEye/3.0.1' -H 'Accept: application/json' -i -s\n\n")
+                                    f.write(f"curl -X {method} '{full_url}' -H 'User-Agent: JSEye/{__version__}' -H 'Accept: application/json' -i -s\n\n")
                 
                 # 3. LinkFinder endpoints
                 linkfinder_endpoints = scan_results.get('linkfinder_endpoints', [])
@@ -388,11 +393,11 @@ class ExportEngine:
                                     continue
                                 
                                 f.write(f"# {idx}. Type: {ep_type} - {ep_url}\n")
-                                f.write(f"curl -X GET '{full_url}' -H 'User-Agent: JSEye/3.0.1' -i -s -o /dev/null -w \"Status: %{{http_code}}\\n\"\n\n")
+                                f.write(f"curl -X GET '{full_url}' -H 'User-Agent: JSEye/{__version__}' -i -s -o /dev/null -w \"Status: %{{http_code}}\\n\"\n\n")
                 
                 # 4. Common API paths
                 f.write("# === COMMON API PATHS ===\n")
-                f.write(f"echo -e \"${{YELLOW}}[*] Testing common API paths${{NC}}\"\n\n")
+                f.write("echo -e \"${YELLOW}[*] Testing common API paths${NC}\"\n\n")
                 
                 common_paths = [
                     '/api', '/api/v1', '/api/v2', '/api/v3',
@@ -404,7 +409,7 @@ class ExportEngine:
                 ]
                 
                 for path in common_paths:
-                    f.write(f"curl -X GET '{base_url}{path}' -H 'User-Agent: JSEye/3.0.1' -i -s -o /dev/null -w \"{path}: %{{http_code}}\\n\"\n")
+                    f.write(f"curl -X GET '{base_url}{path}' -H 'User-Agent: JSEye/{__version__}' -i -s -o /dev/null -w \"{path}: %{{http_code}}\\n\"\n")
                 f.write("\n")
                 
                 # 5. API key testing (if found)
@@ -412,7 +417,7 @@ class ExportEngine:
                 if api_key_findings:
                     f.write("# === API KEY TESTING ===\n")
                     f.write(f"echo -e \"${{RED}}[!] WARNING: {len(api_key_findings)} API keys found in URLs${{NC}}\"\n")
-                    f.write(f"echo -e \"${{YELLOW}}[*] Test these manually - keys may be valid${{NC}}\"\n\n")
+                    f.write("echo -e \"${YELLOW}[*] Test these manually - keys may be valid${NC}\"\n\n")
                     
                     for idx, finding in enumerate(api_key_findings[:10], 1):  # Top 10
                         if isinstance(finding, dict):
@@ -435,13 +440,13 @@ class ExportEngine:
                         url = smap.get('url', '')
                         if url:
                             f.write(f"# {idx}. {url}\n")
-                            f.write(f"curl -X GET '{url}' -H 'User-Agent: JSEye/3.0.1' -o sourcemap_{idx}.map -s\n\n")
+                            f.write(f"curl -X GET '{url}' -H 'User-Agent: JSEye/{__version__}' -o sourcemap_{idx}.map -s\n\n")
                 
                 f.write("echo -e \"${{GREEN}}[+] cURL testing complete!${{NC}}\"\n")
             
             # Make executable
             import os
-            os.chmod(output_file, 0o755)
+            os.chmod(output_file, 0o755)  # nosec B103
             
             logger.info(f"Comprehensive cURL commands exported to {output_file}")
             return True
@@ -538,7 +543,7 @@ class ExportEngine:
             ET.SubElement(item, 'status').text = '200'
             ET.SubElement(item, 'responselength').text = '0'
             ET.SubElement(item, 'mimetype').text = 'JSON' if 'api' in url.lower() else 'HTML'
-        except:
+        except Exception:
             pass
     
     def export_nuclei_template(self, scan_results: Dict[str, Any], output_file: str) -> bool:
@@ -546,10 +551,6 @@ class ExportEngine:
         try:
             # Get target
             target = scan_results.get('target', 'example.com')
-            if not target.startswith(('http://', 'https://')):
-                base_url = f"https://{target}"
-            else:
-                base_url = target
             
             # Collect endpoints
             endpoints_to_test = []
