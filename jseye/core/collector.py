@@ -1,12 +1,14 @@
 """JavaScript file collection and extraction engine."""
 
 import asyncio
-import aiohttp
 import re
-from typing import List, Dict, Any, Set, Optional
-from urllib.parse import urljoin, urlparse
+from typing import Any, Dict, List, Optional
+from urllib.parse import urljoin
+
+import aiohttp
 from bs4 import BeautifulSoup
-from .utils import normalize_url, calculate_sha256, is_js_file, is_map_file, extract_domain
+
+from .utils import calculate_sha256, is_js_file, normalize_url
 
 
 class JSCollector:
@@ -163,7 +165,7 @@ class JSCollector:
                         if dynamic_js:
                             js_files.append(dynamic_js)
             
-        except Exception as e:
+        except Exception:
             # If HTML parsing fails, try to extract JS URLs with regex
             js_urls = self._extract_js_urls_regex(html_content, base_url)
             for js_url in js_urls:

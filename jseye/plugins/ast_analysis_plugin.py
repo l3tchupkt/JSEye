@@ -1,12 +1,14 @@
 import asyncio
-from typing import Dict, Any, List
 
-from .base import (
-    BasePlugin, PluginContext, PluginResult, PluginMetadata,
-    PluginCategory, ExploitationLikelihood, ExposureLevel
-)
 from ..core.ast_engine import JSASTAnalyzer
 from ..core.logging import get_logger
+from .base import (
+    BasePlugin,
+    PluginCategory,
+    PluginContext,
+    PluginMetadata,
+    PluginResult,
+)
 
 logger = get_logger(__name__)
 

@@ -1,10 +1,11 @@
 """Scan Profiling Engine for JSEye v2.1."""
 
 import time
-import asyncio
-import psutil
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
+
+import psutil
+
 from .logging import get_logger
 
 logger = get_logger(__name__)

@@ -1,12 +1,15 @@
 """Setup script for JSEye."""
 
-from setuptools import setup, find_packages
 import os
+
+from setuptools import find_packages, setup
 
 # Read version from version.py
 version_file = os.path.join(os.path.dirname(__file__), 'jseye', 'version.py')
-with open(version_file) as f:
-    exec(f.read())
+version_dict = {}
+with open(version_file, 'r', encoding='utf-8') as f:
+    exec(f.read(), version_dict)  # nosec B102
+version = version_dict.get('__version__', '0.1.0')
 
 # Read README for long description
 readme_file = os.path.join(os.path.dirname(__file__), 'README.md')
@@ -39,13 +42,13 @@ except FileNotFoundError:
 
 setup(
     name='jseye',
-    version=__version__,
+    version=version,
     description='JavaScript Intelligence & Attack Surface Discovery Engine',
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Lakshmikanthan K',
     author_email='letchupkt.dev@gmail.com',
-    url='https://github.com/letchupkt/jseye',
+    url='https://github.com/l3tchupkt/JSEye',
     packages=find_packages(include=['jseye', 'jseye.*']),
     include_package_data=True,
     package_data={
@@ -67,12 +70,10 @@ setup(
             'twine>=4.0.0'
         ],
         'headless': [
-            'selenium>=4.0.0',
-            'webdriver-manager>=3.8.0'
+            'playwright>=1.30.0'
         ],
         'all': [
-            'selenium>=4.0.0',
-            'webdriver-manager>=3.8.0',
+            'playwright>=1.30.0',
             'pytest>=7.0.0',
             'pytest-asyncio>=0.21.0'
         ]
@@ -95,6 +96,7 @@ setup(
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
         'Topic :: Security',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Software Development :: Testing',
@@ -105,10 +107,10 @@ setup(
     python_requires='>=3.8',
     keywords='security javascript reconnaissance osint bug-bounty penetration-testing vulnerability-scanner',
     project_urls={
-        'Bug Reports': 'https://github.com/letchupkt/jseye/issues',
-        'Source': 'https://github.com/letchupkt/jseye',
-        'Documentation': 'https://github.com/letchupkt/jseye/wiki',
-        'Homepage': 'https://github.com/letchupkt/jseye',
+        'Bug Reports': 'https://github.com/l3tchupkt/JSEye/issues',
+        'Source': 'https://github.com/l3tchupkt/JSEye',
+        'Documentation': 'https://github.com/l3tchupkt/JSEye/wiki',
+        'Homepage': 'https://github.com/l3tchupkt/JSEye',
     },
     zip_safe=False,
 )

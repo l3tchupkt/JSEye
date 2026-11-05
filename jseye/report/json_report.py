@@ -1,8 +1,9 @@
 """JSON report generation for JSEye results."""
 
 import json
-from datetime import datetime
-from typing import Dict, Any, List
+from datetime import datetime, timezone
+from typing import Any, Dict, List
+
 from ..version import __version__
 
 
@@ -18,7 +19,7 @@ class JSONReportGenerator:
             'jseye_report': {
                 'version': self.report_version,
                 'jseye_version': __version__,
-                'generated_at': datetime.utcnow().isoformat() + 'Z',
+                'generated_at': datetime.now(timezone.utc).isoformat(),
                 'scan_info': self._generate_scan_info(scan_results),
                 'summary': self._generate_summary(scan_results),
                 'javascript_files': self._process_js_files(scan_results.get('js_files', [])),
@@ -58,7 +59,7 @@ class JSONReportGenerator:
                 with open(output_file, 'w', encoding='utf-8') as f:
                     f.write(json_output)
             except Exception as e:
-                raise Exception(f"Failed to write JSON report: {str(e)}")
+                raise Exception(f"Failed to write JSON report: {e!s}")
         
         return json_output
 
@@ -126,8 +127,7 @@ class JSONReportGenerator:
             }
             
             # Remove content from report to keep size manageable
-            if 'content' in processed_file:
-                del processed_file['content']
+            processed_file.pop('content', None)
             
             processed_files.append(processed_file)
         
@@ -194,16 +194,34 @@ class JSONReportGenerator:
         
         return processed
     
-    def _process_endpoints(self, endpoints: List[str]) -> List[Dict[str, Any]]:
+    def _process_endpoints(self, endpoints: List[Any]) -> List[Dict[str, Any]]:
         """Process endpoints for the report."""
         processed_endpoints = []
         
         for endpoint in endpoints:
-            processed_endpoint = {
-                'url': endpoint,
-                'method': 'GET',  # Default, could be enhanced
-                'discovered_from': 'javascript_analysis'
-            }
+            if isinstance(endpoint, dict):
+                url = endpoint.get('url', '')
+                method = endpoint.get('method', 'GET')
+                source = endpoint.get('source', endpoint.get('discovered_from', 'javascript_analysis'))
+                processed_endpoint = {
+                    'url': url,
+                    'method': method,
+                    'discovered_from': source,
+                }
+                if 'priority' in endpoint:
+                    processed_endpoint['priority'] = endpoint['priority']
+            elif hasattr(endpoint, 'url'):
+                processed_endpoint = {
+                    'url': endpoint.url,
+                    'method': getattr(endpoint, 'method', 'GET'),
+                    'discovered_from': getattr(endpoint, 'source', 'javascript_analysis'),
+                }
+            else:
+                processed_endpoint = {
+                    'url': str(endpoint),
+                    'method': 'GET',
+                    'discovered_from': 'javascript_analysis',
+                }
             processed_endpoints.append(processed_endpoint)
         
         return processed_endpoints
@@ -286,7 +304,7 @@ class JSONReportGenerator:
         """Generate a minimal JSON report with only key findings."""
         minimal_report = {
             'target': scan_results.get('target', ''),
-            'scan_time': datetime.utcnow().isoformat() + 'Z',
+            'scan_time': datetime.now(timezone.utc).isoformat(),
             'summary': {
                 'js_files': len(scan_results.get('js_files', [])),
                 'secrets': len(scan_results.get('secrets', [])),
@@ -311,7 +329,7 @@ class JSONReportGenerator:
         """Export only secrets in JSON format."""
         secrets_report = {
             'target': scan_results.get('target', ''),
-            'export_time': datetime.utcnow().isoformat() + 'Z',
+            'export_time': datetime.now(timezone.utc).isoformat(),
             'secrets': self._process_secrets(scan_results.get('secrets', []))
         }
         
@@ -321,7 +339,7 @@ class JSONReportGenerator:
         """Export only endpoints in JSON format."""
         endpoints_report = {
             'target': scan_results.get('target', ''),
-            'export_time': datetime.utcnow().isoformat() + 'Z',
+            'export_time': datetime.now(timezone.utc).isoformat(),
             'endpoints': self._process_endpoints(scan_results.get('endpoints', [])),
             'api_analysis': self._process_api_analysis(scan_results.get('api_analysis', []))
         }

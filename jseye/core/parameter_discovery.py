@@ -1,11 +1,10 @@
 """Advanced Parameter Discovery Engine for JSEye v3.0 - Bug Hunter Edition."""
 
 import re
-import json
-import ast
-from typing import Dict, List, Set, Any, Optional, Tuple
 from dataclasses import dataclass
-from urllib.parse import urlparse, parse_qs
+from typing import Any, Dict, List, Optional
+from urllib.parse import parse_qs, urlparse
+
 from .logging import get_logger
 
 logger = get_logger(__name__)
@@ -233,7 +232,6 @@ class ParameterDiscoveryEngine:
     def _extract_endpoints_from_js(self, js_file: Dict[str, Any]) -> List[Endpoint]:
         """Extract API endpoints from JavaScript."""
         content = js_file.get('content', '')
-        url = js_file.get('url', '')
         endpoints = []
         
         # API endpoint patterns

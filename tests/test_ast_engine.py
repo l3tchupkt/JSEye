@@ -1,5 +1,7 @@
 import pytest
+
 from jseye.core.ast_engine import JSASTAnalyzer
+
 
 @pytest.fixture
 def ast_analyzer():

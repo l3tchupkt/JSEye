@@ -1,12 +1,11 @@
 """Advanced AST analysis engine for JavaScript intelligence v2."""
 
 import re
-import ast
-import json
-from typing import Dict, List, Any, Optional, Set, Tuple
 from dataclasses import dataclass
-from .logging import get_logger
+from typing import Any, Dict, List, Optional, Tuple
+
 from .exceptions import JSEyeParsingError
+from .logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -62,6 +61,13 @@ class JSASTAnalyzer:
     
     def analyze(self, content: str, source_url: str = "") -> Dict[str, Any]:
         """Perform comprehensive AST analysis of JavaScript content."""
+        # Reset state for each file to prevent memory leak and cross-file contamination
+        self.variables.clear()
+        self.function_calls.clear()
+        self.string_builders.clear()
+        self.template_literals.clear()
+        self.dynamic_imports.clear()
+
         try:
             # Clean and prepare content
             cleaned_content = self._clean_js_content(content)
@@ -104,7 +110,7 @@ class JSASTAnalyzer:
             
         except Exception as e:
             logger.error(f"AST analysis failed for {source_url}", error=str(e))
-            raise JSEyeParsingError(f"AST analysis failed: {str(e)}", source=source_url)
+            raise JSEyeParsingError(f"AST analysis failed: {e!s}", source=source_url)
     
     def _clean_js_content(self, content: str) -> str:
         """Clean JavaScript content for analysis."""

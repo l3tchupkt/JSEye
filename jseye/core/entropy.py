@@ -2,8 +2,8 @@
 
 import math
 import re
-from typing import Dict, Tuple
 from collections import Counter
+from typing import Dict, Tuple
 
 
 class EntropyAnalyzer:

@@ -6,9 +6,8 @@ infinite pagination loops throughout the recursive crawl.
 """
 
 import hashlib
-import re
-from typing import Optional, Set, Dict
-from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
+from typing import Dict, Optional, Set
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from .logging import get_logger
 
@@ -123,7 +122,9 @@ class DedupeEngine:
         - Strips trailing slash from path (except root)
         """
         try:
-            if not url.startswith(("http://", "https://")):
+            if url.startswith("//"):
+                url = "https:" + url
+            elif not url.startswith(("http://", "https://")):
                 # Treat relative URLs as opaque keys
                 return url.strip()
 

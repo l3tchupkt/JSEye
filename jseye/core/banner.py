@@ -1,8 +1,9 @@
 """ASCII Banner for JSEye v2.0."""
 
-import asyncio
-import aiohttp
 from typing import Optional
+
+import aiohttp
+
 from ..version import __version__
 
 
@@ -50,9 +51,8 @@ def get_full_banner() -> str:
 async def print_banner_async() -> None:
     """Print the banner with colors, alignment, and version check."""
     try:
-        from rich.console import Console
         from rich.align import Align
-        from rich.text import Text
+        from rich.console import Console
         
         console = Console()
         
@@ -100,8 +100,8 @@ async def print_banner_async() -> None:
 def print_banner() -> None:
     """Print the banner with colors and proper alignment (sync version)."""
     try:
-        from rich.console import Console
         from rich.align import Align
+        from rich.console import Console
         
         console = Console()
         

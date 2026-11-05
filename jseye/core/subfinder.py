@@ -5,7 +5,7 @@ Discovers subdomains using subfinder tool
 
 import asyncio
 import subprocess
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List
 
 
 class SubfinderIntegration:

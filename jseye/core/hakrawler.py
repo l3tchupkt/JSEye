@@ -5,7 +5,7 @@ Fast web crawler for discovering URLs and endpoints
 
 import asyncio
 import subprocess
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 
 class HakrawlerIntegration:

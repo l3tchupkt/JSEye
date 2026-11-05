@@ -4,8 +4,8 @@ Finds JS files referenced within other JS files
 """
 
 import re
-from typing import List, Set, Dict, Any
-from urllib.parse import urljoin, urlparse
+from typing import Any, Dict, List, Set
+from urllib.parse import urlparse
 
 
 class RecursiveJSFinder:

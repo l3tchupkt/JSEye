@@ -1,13 +1,13 @@
 """CVE intelligence engine using free APIs for library vulnerability detection."""
 
 import asyncio
-import aiohttp
 import re
-import json
-from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
+import aiohttp
+
 from .logging import get_logger
-from .exceptions import JSEyeNetworkError
 
 logger = get_logger(__name__)
 
@@ -234,8 +234,6 @@ class CVEIntelligenceEngine:
     def _deduplicate_libraries(self, libraries: List[LibraryInfo]) -> List[LibraryInfo]:
         """Remove duplicate library detections."""
         seen = {}
-        unique_libraries = []
-        
         for lib in libraries:
             key = f"{lib.name}:{lib.version}"
             

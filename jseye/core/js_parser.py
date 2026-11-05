@@ -1,14 +1,18 @@
 """JavaScript parsing and analysis engine."""
 
 import re
-import json
-import jsbeautifier
-from typing import List, Dict, Any, Set, Optional, Tuple
+from typing import Any, Dict, List
 from urllib.parse import urljoin, urlparse
+
+import jsbeautifier
+
 from .utils import (
-    extract_js_strings, extract_endpoints_from_js, 
-    extract_urls_from_string, clean_js_content,
-    extract_subdomains_from_js, decode_base64, decode_hex, decode_uri_component
+    decode_base64,
+    decode_hex,
+    extract_endpoints_from_js,
+    extract_js_strings,
+    extract_subdomains_from_js,
+    extract_urls_from_string,
 )
 
 
@@ -44,9 +48,6 @@ class JSParser:
         except Exception:
             # If beautification fails, use original content
             beautified_content = content
-        
-        # Clean content for analysis
-        cleaned_content = clean_js_content(beautified_content)
         
         analysis_result = {
             'source_url': source_url,

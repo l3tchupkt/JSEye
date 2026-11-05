@@ -11,7 +11,6 @@ from .katana import KatanaIntegration
 from .subfinder import SubfinderIntegration
 from .hakrawler import HakrawlerIntegration
 from .linkfinder import LinkFinder
-from .headless import HeadlessBrowser
 from .utils import calculate_sha256, deduplicate_by_hash, extract_domain
 from .logging import get_logger
 from .scope import ScopeEngine
@@ -23,6 +22,7 @@ from .profiling_engine import ProfilingEngine
 from .graph_engine import GraphEngine
 from ..plugins.manager import PluginManager
 from ..plugins.base import PluginContext
+from ..version import __version__
 
 logger = get_logger(__name__)
 
@@ -78,7 +78,7 @@ class PluginBasedCrawler:
                 'start_time': None,
                 'end_time': None,
                 'duration': 0,
-                'jseye_version': '3.0.1'
+                'jseye_version': __version__
             },
             'js_files': [],
             'plugin_results': {},
@@ -258,7 +258,7 @@ class PluginBasedCrawler:
             self._generate_statistics()
             
             if self.enable_profiling:
-                scan_profile = self.profiling_engine.generate_scan_profile(target)
+                self.profiling_engine.generate_scan_profile(target)
                 self.results['profiling'] = self.profiling_engine.get_profiling_report()
             
             self.profiling_engine.end_operation('statistics_generation')
@@ -319,7 +319,7 @@ class PluginBasedCrawler:
         subdomains = [target_url]
         if self.config.get('subfinder', True):
             try:
-                console.print(f"[bold cyan]Phase 1:[/bold cyan] Subdomain Discovery")
+                console.print("[bold cyan]Phase 1:[/bold cyan] Subdomain Discovery")
                 subfinder = SubfinderIntegration(timeout=180)
                 if subfinder.is_available():
                     discovered_subs = await subfinder.discover_subdomains(domain, silent=True)
@@ -331,14 +331,14 @@ class PluginBasedCrawler:
                                 subdomains.append(sub)
                         console.print(f"  [green][+][/green] {len(subdomains)-1} in-scope subdomains found")
                 else:
-                    console.print(f"  [yellow][!][/yellow] Subfinder not available")
+                    console.print("  [yellow][!][/yellow] Subfinder not available")
             except Exception as e:
                 console.print(f"  [yellow][!][/yellow] Error: {str(e)[:40]}")
         else:
-            console.print(f"[bold cyan]Phase 1:[/bold cyan] Subdomain Discovery [yellow](Skipped via --no-subs)[/yellow]")
+            console.print("[bold cyan]Phase 1:[/bold cyan] Subdomain Discovery [yellow](Skipped via --no-subs)[/yellow]")
         
         # PHASE 2: URL Discovery from all sources
-        console.print(f"\n[bold cyan]Phase 2:[/bold cyan] URL Discovery")
+        console.print("\n[bold cyan]Phase 2:[/bold cyan] URL Discovery")
         
         # 2a. GAU - Get All URLs
         if self.enable_gau:
@@ -397,9 +397,9 @@ class PluginBasedCrawler:
                     if crawled_count > 0:
                         console.print(f"  [green][+][/green] Hakrawler: {crawled_count} URLs ({js_count} JS)")
                     else:
-                        console.print(f"  [yellow][!][/yellow] Hakrawler: No URLs found")
+                        console.print("  [yellow][!][/yellow] Hakrawler: No URLs found")
             except Exception:
-                console.print(f"  [yellow][!][/yellow] Hakrawler: Error")
+                console.print("  [yellow][!][/yellow] Hakrawler: Error")
         
         # 2d. Katana - Fast Crawler with JS Support
         if self.enable_katana:
@@ -423,14 +423,14 @@ class PluginBasedCrawler:
                     if crawled_count > 0:
                         console.print(f"  [green][+][/green] Katana: {crawled_count} URLs ({js_count} JS)")
                     else:
-                        console.print(f"  [yellow][!][/yellow] Katana: No URLs found")
+                        console.print("  [yellow][!][/yellow] Katana: No URLs found")
             except Exception:
-                console.print(f"  [yellow][!][/yellow] Katana: Error")
+                console.print("  [yellow][!][/yellow] Katana: Error")
         
         console.print(f"  [bold green]Total:[/bold green] {len(all_urls_to_crawl)} unique URLs")
         
         # PHASE 2.5: Additional Discovery (robots.txt, sitemap, common files)
-        console.print(f"\n[bold cyan]Phase 2.5:[/bold cyan] Additional Discovery")
+        console.print("\n[bold cyan]Phase 2.5:[/bold cyan] Additional Discovery")
         try:
             from .additional_discovery import AdditionalDiscovery
             
@@ -463,10 +463,10 @@ class PluginBasedCrawler:
                 self.results['api_documentation'] = api_docs
             
         except Exception:
-            console.print(f"  [yellow][!][/yellow] Additional discovery failed")
+            console.print("  [yellow][!][/yellow] Additional discovery failed")
         
         # PHASE 3: Live JS Collection from all subdomains
-        console.print(f"\n[bold cyan]Phase 3:[/bold cyan] Live Collection")
+        console.print("\n[bold cyan]Phase 3:[/bold cyan] Live Collection")
         try:
             async with JSCollector(timeout=10, max_concurrent=20) as collector:
                 for subdomain in subdomains:
@@ -486,7 +486,7 @@ class PluginBasedCrawler:
             pass
         
         # PHASE 4 & 5: Autonomous Recursive Queue (v3.0.1)
-        console.print(f"\n[bold cyan]Phase 4 & 5:[/bold cyan] Autonomous Recursive Crawl")
+        console.print("\n[bold cyan]Phase 4 & 5:[/bold cyan] Autonomous Recursive Crawl")
         if all_urls_to_crawl:
             try:
                 # Initialize the recursive queue with the v3 engines
@@ -524,7 +524,7 @@ class PluginBasedCrawler:
         # PHASE 6: LinkFinder - Extract endpoints from all JS
         if self.enable_linkfinder and all_js_files:
             try:
-                console.print(f"\n[bold cyan]Phase 6:[/bold cyan] Endpoint Extraction")
+                console.print("\n[bold cyan]Phase 6:[/bold cyan] Endpoint Extraction")
                 linkfinder = LinkFinder()
                 lf_result = linkfinder.extract_from_multiple(all_js_files)
                 
@@ -537,7 +537,7 @@ class PluginBasedCrawler:
         # PHASE 6.3: Advanced API Detection
         if all_js_files:
             try:
-                console.print(f"\n[bold cyan]Phase 6.3:[/bold cyan] API Detection")
+                console.print("\n[bold cyan]Phase 6.3:[/bold cyan] API Detection")
                 from .api_detector import APIDetector
                 
                 api_detector = APIDetector()
@@ -569,16 +569,16 @@ class PluginBasedCrawler:
                 
                 # Show API breakdown
                 if api_analysis['by_classification']:
-                    console.print(f"  [cyan]API Types:[/cyan]")
+                    console.print("  [cyan]API Types:[/cyan]")
                     for api_type, count in sorted(api_analysis['by_classification'].items(), key=lambda x: x[1], reverse=True)[:5]:
                         console.print(f"    [+] {api_type}: {count}")
                 
-            except Exception as e:
-                console.print(f"  [yellow][!][/yellow] API detection failed")
+            except Exception:
+                console.print("  [yellow][!][/yellow] API detection failed")
         
         # PHASE 6.4: Swagger/OpenAPI Detection
         try:
-            console.print(f"\n[bold cyan]Phase 6.4:[/bold cyan] Swagger/OpenAPI Detection")
+            console.print("\n[bold cyan]Phase 6.4:[/bold cyan] Swagger/OpenAPI Detection")
             from .swagger_detector import SwaggerDetector
             
             async with SwaggerDetector(timeout=10, max_concurrent=20) as swagger_detector:
@@ -610,20 +610,20 @@ class PluginBasedCrawler:
                     
                     # Show spec details
                     if swagger_result.get('spec_details'):
-                        console.print(f"  [cyan]Discovered Specs:[/cyan]")
+                        console.print("  [cyan]Discovered Specs:[/cyan]")
                         for spec in swagger_result['spec_details'][:5]:  # Show first 5
                             version = spec.get('version', 'unknown')
                             endpoint_count = spec.get('endpoint_count', 0)
                             console.print(f"    [+] {spec['path']} (v{version}): {endpoint_count} endpoints")
                 else:
-                    console.print(f"  [yellow][!][/yellow] No Swagger specs found")
+                    console.print("  [yellow][!][/yellow] No Swagger specs found")
         except Exception as e:
             console.print(f"  [yellow][!][/yellow] Swagger detection failed: {str(e)[:50]}")
         
         # PHASE 6.5: Source Map Detection and Fetching
         if all_js_files:
             try:
-                console.print(f"\n[bold cyan]Phase 6.5:[/bold cyan] Source Map Discovery")
+                console.print("\n[bold cyan]Phase 6.5:[/bold cyan] Source Map Discovery")
                 from .sourcemap_detector import SourceMapDetector
                 
                 sourcemap_detector = SourceMapDetector(timeout=10)
@@ -646,14 +646,14 @@ class PluginBasedCrawler:
                     
                     console.print(f"  [green][+][/green] {len(sourcemaps)} source maps fetched")
                 else:
-                    console.print(f"  [yellow][!][/yellow] No source maps found")
-            except Exception as e:
-                console.print(f"  [yellow][!][/yellow] Source map detection failed")
+                    console.print("  [yellow][!][/yellow] No source maps found")
+            except Exception:
+                console.print("  [yellow][!][/yellow] Source map detection failed")
         
         # PHASE 7: Secret Detection
         if all_js_files:
             try:
-                console.print(f"\n[bold cyan]Phase 7:[/bold cyan] Secret Detection")
+                console.print("\n[bold cyan]Phase 7:[/bold cyan] Secret Detection")
                 from .mantra_secrets import MantraSecretScanner
                 
                 mantra_scanner = MantraSecretScanner(timeout=120)
@@ -665,16 +665,16 @@ class PluginBasedCrawler:
                         self.results['mantra_secrets'] = mantra_result.get('secrets', [])
                         console.print(f"  [green][+][/green] {mantra_result['total_secrets']} secrets found")
                     else:
-                        console.print(f"  [yellow][!][/yellow] Mantra scan failed")
+                        console.print("  [yellow][!][/yellow] Mantra scan failed")
                 else:
-                    console.print(f"  [yellow][!][/yellow] Mantra not available")
+                    console.print("  [yellow][!][/yellow] Mantra not available")
             except Exception:
                 pass
         
         # PHASE 7.5: Version Detection
         if all_js_files:
             try:
-                console.print(f"\n[bold cyan]Phase 7.5:[/bold cyan] Version Detection")
+                console.print("\n[bold cyan]Phase 7.5:[/bold cyan] Version Detection")
                 from .version_detector import VersionDetector
                 
                 version_detector = VersionDetector()
@@ -707,20 +707,20 @@ class PluginBasedCrawler:
                             valid_libs.append((lib, versions))
                     
                     if valid_libs:
-                        console.print(f"  [cyan]Detected Libraries:[/cyan]")
+                        console.print("  [cyan]Detected Libraries:[/cyan]")
                         for lib, versions in sorted(valid_libs)[:15]:  # Show top 15
                             unique_versions = list(set(versions))[:3]  # Max 3 versions
                             console.print(f"    [+] {lib}: {', '.join(unique_versions)}")
                     else:
-                        console.print(f"  [yellow][!][/yellow] No valid libraries detected")
+                        console.print("  [yellow][!][/yellow] No valid libraries detected")
                 
             except Exception:
-                console.print(f"  [yellow][!][/yellow] Version detection failed")
+                console.print("  [yellow][!][/yellow] Version detection failed")
         
         # PHASE 7.7: CVE Lookup
         if self.results.get('detected_versions'):
             try:
-                console.print(f"\n[bold cyan]Phase 7.7:[/bold cyan] CVE Lookup")
+                console.print("\n[bold cyan]Phase 7.7:[/bold cyan] CVE Lookup")
                 from .cve_lookup import CVELookup
                 
                 cve_lookup = CVELookup(timeout=30)
@@ -749,14 +749,14 @@ class PluginBasedCrawler:
                     console.print(f"    [+] Medium: {cve_results['medium']}")
                     console.print(f"    [+] Low: {cve_results['low']}")
                 else:
-                    console.print(f"  [green][+][/green] No CVEs found")
+                    console.print("  [green][+][/green] No CVEs found")
                 
-            except Exception as e:
-                console.print(f"  [yellow]![/yellow] CVE lookup failed")
+            except Exception:
+                console.print("  [yellow]![/yellow] CVE lookup failed")
         
         # PHASE 7.8: Dependency Confusion Analysis
         try:
-            console.print(f"\n[bold cyan]Phase 7.8:[/bold cyan] Dependency Confusion Analysis")
+            console.print("\n[bold cyan]Phase 7.8:[/bold cyan] Dependency Confusion Analysis")
             from .dependency_analyzer import DependencyAnalyzer
             
             async with DependencyAnalyzer(timeout=10, max_concurrent=20) as dep_analyzer:
@@ -780,13 +780,13 @@ class PluginBasedCrawler:
                         console.print(f"    • Missing Packages: {stats.get('missing_packages', 0)}")
                         
                         # Show top 3 vulnerable dependencies
-                        console.print(f"  [yellow]Top Vulnerable Dependencies:[/yellow]")
+                        console.print("  [yellow]Top Vulnerable Dependencies:[/yellow]")
                         for dep in vulnerable_deps[:3]:
                             console.print(f"    • {dep['name']} ({dep['severity']}): {dep['risk_factors'][0] if dep['risk_factors'] else 'Unknown'}")
                     else:
-                        console.print(f"  [green]✓[/green] No vulnerable dependencies found")
+                        console.print("  [green]✓[/green] No vulnerable dependencies found")
                 else:
-                    console.print(f"  [yellow]![/yellow] No package files found")
+                    console.print("  [yellow]![/yellow] No package files found")
         except Exception as e:
             console.print(f"  [yellow]![/yellow] Dependency analysis failed: {str(e)[:50]}")
         
@@ -794,72 +794,6 @@ class PluginBasedCrawler:
         unique_js_files = deduplicate_by_hash(all_js_files, 'hash')
         
         console.print(f"\n[bold green]✓ Collection Complete:[/bold green] {len(unique_js_files)} unique JS files")
-        
-        return unique_js_files
-        
-        # Wayback Machine collection
-        if self.enable_wayback:
-            try:
-                async with WaybackIntegration(timeout=30, max_concurrent=5) as wayback:
-                    domain = extract_domain(target)
-                    wayback_files = await wayback.discover_historical_js(domain, limit=500)
-                    
-                    if wayback_files:
-                        for wb_file in wayback_files:
-                            if wb_file.get('content'):
-                                js_file = {
-                                    'url': wb_file['url'],
-                                    'content': wb_file['content'],
-                                    'size': wb_file['size'],
-                                    'hash': calculate_sha256(wb_file['content']),
-                                    'source': 'wayback',
-                                    'type': 'historical'
-                                }
-                                all_js_files.append(js_file)
-                        console.print(f"[green]  + Found {len(wayback_files)} files from Wayback[/green]")
-                    
-            except Exception as e:
-                error_msg = f"Wayback collection failed: {str(e)}"
-                self.results['errors'].append(error_msg)
-        
-        # GAU collection
-        if self.enable_gau:
-            try:
-                gau = GAUIntegration(timeout=60)
-                if gau.is_available():
-                    domain = extract_domain(target)
-                    gau_js_urls = await gau.discover_js_urls(domain)
-                    
-                    if gau_js_urls:
-                        # Limit to 50 URLs to avoid overwhelming
-                        limited_urls = gau_js_urls[:50]
-                        console.print(f"[cyan]  + Fetching {len(limited_urls)} URLs from GAU...[/cyan]")
-                        
-                        # Fetch content for GAU URLs with timeout
-                        async with JSCollector(timeout=5, max_concurrent=10) as collector:
-                            for gau_url in limited_urls:
-                                try:
-                                    js_result = await asyncio.wait_for(
-                                        collector.collect_from_url(gau_url['url']),
-                                        timeout=5
-                                    )
-                                    if js_result.get('js_files'):
-                                        for js_file in js_result['js_files']:
-                                            js_file['source'] = 'gau'
-                                            all_js_files.append(js_file)
-                                except (asyncio.TimeoutError, Exception):
-                                    # Skip individual URL failures
-                                    continue
-                        console.print(f"[green]  + Collected {len([f for f in all_js_files if f.get('source') == 'gau'])} files from GAU[/green]")
-                else:
-                    self.results['errors'].append("GAU tool not available")
-                    
-            except Exception as e:
-                error_msg = f"GAU collection failed: {str(e)}"
-                self.results['errors'].append(error_msg)
-        
-        # Deduplicate by hash
-        unique_js_files = deduplicate_by_hash(all_js_files, 'hash')
         
         return unique_js_files
     
@@ -1002,10 +936,69 @@ class PluginBasedCrawler:
                 consolidated_secrets.append(secret)
                 all_findings.append(secret)
         
+        # Consolidate all endpoints from all phases & plugins
+        existing_endpoints = self.results.get('endpoints', [])
+        queued_endpoints = self.results.get('queued_endpoints', [])
+        all_raw_endpoints = []
+        all_raw_endpoints.extend(existing_endpoints)
+        all_raw_endpoints.extend(queued_endpoints)
+        all_raw_endpoints.extend(consolidated_endpoints)
+
+        # Pull endpoints from AST analysis plugin findings
+        for f in all_findings:
+            if f.get('type') == 'ast_endpoint' and f.get('url'):
+                all_raw_endpoints.append({'url': f['url'], 'source': 'ast_analysis'})
+
+        seen_endpoints = set()
+        deduped_endpoints = []
+        for ep in all_raw_endpoints:
+            url_val = ep.get('url', '') if isinstance(ep, dict) else (ep if isinstance(ep, str) else '')
+            if hasattr(ep, 'url'):
+                url_val = getattr(ep, 'url')
+            if url_val and url_val not in seen_endpoints:
+                seen_endpoints.add(url_val)
+                if isinstance(ep, dict):
+                    deduped_endpoints.append(ep)
+                elif hasattr(ep, '__dict__'):
+                    deduped_endpoints.append(dict(vars(ep)))
+                else:
+                    deduped_endpoints.append({'url': url_val, 'method': 'GET'})
+
+        # Consolidate parameters
+        existing_params = self.results.get('parameters', [])
+        queued_params = self.results.get('queued_parameters', [])
+        seen_params = set()
+        deduped_params = []
+        for p in existing_params + queued_params:
+            p_name = p.get('name', '') if isinstance(p, dict) else (p if isinstance(p, str) else '')
+            if p_name and p_name not in seen_params:
+                seen_params.add(p_name)
+                if isinstance(p, dict):
+                    deduped_params.append(p)
+                else:
+                    deduped_params.append({'name': p_name})
+
+        # Consolidate vulnerable dependencies
+        vulnerable_deps = self.results.get('vulnerable_dependencies', [])
+        for dep in vulnerable_deps:
+            finding = {
+                'type': 'vulnerable_dependency',
+                'name': dep.get('name'),
+                'version': dep.get('version'),
+                'severity': dep.get('severity', 'high').lower(),
+                'description': f"Vulnerable dependency: {dep.get('name')} {dep.get('version', '')}",
+                'risk_factors': dep.get('risk_factors', []),
+                'source_file': dep.get('source_file', ''),
+                'plugin_source': 'dependency_analyzer'
+            }
+            consolidated_vulnerabilities.append(finding)
+            all_findings.append(finding)
+
         # Store consolidated results
         self.results['all_findings'] = all_findings
         self.results['secrets'] = consolidated_secrets
-        self.results['endpoints'] = consolidated_endpoints
+        self.results['endpoints'] = deduped_endpoints
+        self.results['parameters'] = deduped_params
         self.results['vulnerabilities'] = consolidated_vulnerabilities
         
         # Sort findings by risk score

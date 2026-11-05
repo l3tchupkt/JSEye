@@ -2,9 +2,9 @@
 
 import abc
 import time
-from typing import Dict, List, Any, Optional, Union
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
 
 class PluginCategory(Enum):
@@ -136,12 +136,10 @@ class BasePlugin(abc.ABC):
     @abc.abstractmethod
     def metadata(self) -> PluginMetadata:
         """Return plugin metadata."""
-        pass
     
     @abc.abstractmethod
     async def run(self, context: PluginContext) -> PluginResult:
         """Execute the plugin analysis."""
-        pass
     
     def is_enabled(self) -> bool:
         """Check if plugin is enabled."""

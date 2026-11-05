@@ -1,5 +1,7 @@
 import pytest
+
 from jseye.core.dedupe import DedupeEngine
+
 
 @pytest.fixture
 def dedupe():

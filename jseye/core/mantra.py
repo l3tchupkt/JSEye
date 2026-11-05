@@ -2,8 +2,8 @@
 
 import asyncio
 import subprocess
-import json
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from .logging import get_logger
 
 logger = get_logger(__name__)

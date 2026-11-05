@@ -1,10 +1,11 @@
 """Operating system detection and tool management."""
 
-import platform
-import subprocess
-import shutil
 import os
-from typing import Dict, List, Optional
+import platform
+import shutil
+import subprocess
+from typing import Dict, Optional
+
 from rich.console import Console
 
 console = Console()
@@ -139,8 +140,8 @@ class OSDetector:
         
         # Fallback to binary download in user directory
         try:
-            import tempfile
             import os
+            import tempfile
             
             arch_map = {'x86_64': 'amd64', 'aarch64': 'arm64'}
             arch = arch_map.get(self.arch, 'amd64')
@@ -272,7 +273,7 @@ class OSDetector:
         try:
             # Try go install first
             result = subprocess.run(['go', 'install', 'github.com/lc/gau/v2/cmd/gau@latest'], 
-                                  capture_output=True, text=True, timeout=60, shell=True)
+                                  capture_output=True, text=True, timeout=60)
             if result.returncode == 0:
                 return True
         except (subprocess.TimeoutExpired, FileNotFoundError):
@@ -657,7 +658,7 @@ class OSDetector:
         try:
             # Try Chocolatey first
             result = subprocess.run(['choco', 'install', 'golang', '-y'], 
-                                  capture_output=True, text=True, timeout=300, shell=True)
+                                  capture_output=True, text=True, timeout=300)
             if result.returncode == 0:
                 return True
         except (FileNotFoundError, subprocess.TimeoutExpired):
@@ -666,7 +667,7 @@ class OSDetector:
         # Try Scoop
         try:
             result = subprocess.run(['scoop', 'install', 'go'], 
-                                  capture_output=True, text=True, timeout=300, shell=True)
+                                  capture_output=True, text=True, timeout=300)
             if result.returncode == 0:
                 return True
         except (FileNotFoundError, subprocess.TimeoutExpired):

@@ -4,9 +4,11 @@ Detects and fetches .map files for JavaScript files
 """
 
 import asyncio
-import aiohttp
 import re
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+from urllib.parse import urljoin
+
+import aiohttp
 
 
 class SourceMapDetector:
@@ -28,40 +30,39 @@ class SourceMapDetector:
             if match:
                 map_url = match.group(1).strip()
                 
-                # Handle relative URLs
+                # Ignore inline data URIs for remote network fetching
+                if map_url.startswith("data:"):
+                    return None
+                
+                # Resolve relative to JS file URL properly
                 if not map_url.startswith(('http://', 'https://')):
-                    # Resolve relative to JS file URL
-                    if js_url.endswith('.js'):
-                        base_url = js_url.rsplit('/', 1)[0]
-                        map_url = f"{base_url}/{map_url}"
-                    else:
-                        map_url = f"{js_url}/{map_url}"
+                    map_url = urljoin(js_url, map_url)
                 
                 return map_url
         
         # Try common convention: filename.js.map
-        if js_url.endswith('.js'):
-            return f"{js_url}.map"
+        if js_url.endswith('.js') or '.js?' in js_url:
+            clean_url = js_url.split('?')[0]
+            return f"{clean_url}.map"
         
         return None
     
     async def fetch_sourcemap(self, map_url: str) -> Optional[Dict[str, Any]]:
         """Fetch source map file."""
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    map_url,
-                    timeout=aiohttp.ClientTimeout(total=self.timeout),
-                    headers={'User-Agent': 'Mozilla/5.0'}
-                ) as response:
-                    if response.status == 200:
-                        content = await response.text()
-                        return {
-                            'url': map_url,
-                            'content': content,
-                            'size': len(content),
-                            'status': 'success'
-                        }
+            async with aiohttp.ClientSession() as session, session.get(
+                map_url,
+                timeout=aiohttp.ClientTimeout(total=self.timeout),
+                headers={'User-Agent': 'Mozilla/5.0'}
+            ) as response:
+                if response.status == 200:
+                    content = await response.text()
+                    return {
+                        'url': map_url,
+                        'content': content,
+                        'size': len(content),
+                        'status': 'success'
+                    }
         except Exception:
             pass
         

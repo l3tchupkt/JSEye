@@ -4,9 +4,8 @@ Comprehensive API endpoint detection from JavaScript and URLs
 """
 
 import re
-import json
-from typing import List, Dict, Any, Set
-from urllib.parse import urlparse, parse_qs
+from typing import Any, Dict, List
+from urllib.parse import parse_qs, urlparse
 
 
 class APIDetector:
