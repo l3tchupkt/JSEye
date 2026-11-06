@@ -69,3 +69,6 @@ logs/
 jseye-*/
 AUDIT.md
 audit.md
+test_scan_out/
+test_out/
+recon_out/

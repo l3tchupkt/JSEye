@@ -277,6 +277,12 @@ Bug Hunter Examples:
         help='Verbose output - show low-confidence findings'
     )
 
+    parser.add_argument(
+        '--install-tools',
+        action='store_true',
+        help='Attempt to install missing external tools (Go, Katana, Subfinder, GAU, etc.)'
+    )
+
     # Version
     parser.add_argument(
         '--version',
@@ -943,8 +949,9 @@ async def main():
         await print_banner_async()
 
     # ---------------------------------------------------------------------------
-    # Pre-flight: auto-install Go tools and Python packages on every run.
-    # Already-installed tools are detected in < 1ms via PATH check.
+    # Pre-flight: verify tools and dependencies.
+    # Tools in PATH are detected instantly. Missing tools fallback to native
+    # Python engines unless --install-tools is explicitly specified.
     # ---------------------------------------------------------------------------
     if not args.silent:
         console.print("[cyan][*] Pre-flight check: verifying tools and dependencies...[/cyan]")
@@ -956,13 +963,13 @@ async def main():
         installer = ToolInstaller()
         os_det = OSDetector()
 
-        # Check Python deps first (fast)
-        await installer.check_and_install_python_dependencies()
-
         # Build tool status table
         all_tools = ['gau', 'waybackurls', 'hakrawler', 'mantra', 'subfinder', 'katana']
         tool_status = {t: os_det.is_tool_installed(t) for t in all_tools}
         missing_tools = [t for t, ok in tool_status.items() if not ok]
+
+        if getattr(args, 'install_tools', False):
+            await installer.check_and_install_python_dependencies()
 
         if not args.silent:
             status_table = Table(title="Tool Status", show_header=True, header_style="bold cyan")
@@ -981,18 +988,23 @@ async def main():
 
             for tool in all_tools:
                 ok = tool_status[tool]
-                status_str = "[green][READY][/green]" if ok else "[yellow][INSTALLING][/yellow]"
+                status_str = "[green][READY][/green]" if ok else "[dim yellow][NOT FOUND][/dim yellow]"
                 status_table.add_row(tool, status_str, tool_purposes.get(tool, ''))
 
             console.print(status_table)
 
         if missing_tools:
+            if getattr(args, 'install_tools', False):
+                if not args.silent:
+                    console.print(f"[yellow][!] Installing missing tools: {', '.join(missing_tools)}[/yellow]")
+                await installer.install_external_tools()
+            else:
+                if not args.silent:
+                    console.print(f"[dim][*] Optional external tools not found in PATH: {', '.join(missing_tools)}.[/dim]")
+                    console.print("[dim][*] Native Python engines active. (Use --install-tools to install external Go helpers)[/dim]\n")
+        else:
             if not args.silent:
-                console.print(f"[yellow][!] Installing missing tools: {', '.join(missing_tools)}[/yellow]")
-            await installer.install_external_tools()
-
-        if not args.silent:
-            console.print("[green][+] Pre-flight check complete[/green]\n")
+                console.print("[green][+] Pre-flight check complete: all tools ready[/green]\n")
 
     except Exception as _pf_exc:
         if not args.silent:
@@ -1084,21 +1096,7 @@ async def main():
     if not args.silent:
         console.print(f"[cyan]Output directory: {output_dir}")
     
-    # Check tool dependencies and auto-install
-    installer = ToolInstaller()
-    
-    # Auto-install missing tools
-    missing_tools = installer.get_missing_tools()
-    if missing_tools and not args.silent:
-        console.print(f"[cyan]Auto-installing {len(missing_tools)} missing tool(s)...[/cyan]")
-        await installer.auto_install_missing_tools()
-    
-    setup_success = await installer.setup_environment(auto_install=True)
-    
-    if not setup_success:
-        missing_tools = installer.get_missing_tools()
-        if missing_tools and not args.silent:
-            console.print(f"[yellow]! Some tools unavailable: {', '.join(missing_tools)}[/yellow]")
+    # Tool verification already completed during pre-flight check
     
     # Create scan configuration
     config = create_scan_config(args)

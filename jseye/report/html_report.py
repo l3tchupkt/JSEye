@@ -1,6 +1,6 @@
 """HTML report generation for JSEye results."""
 
-import html
+import html as html_lib
 import os
 from datetime import datetime, timezone
 from typing import Any, Dict
@@ -64,7 +64,21 @@ class HTMLReportGenerator:
 
     def _prepare_template_data(self, scan_results: Dict[str, Any]) -> Dict[str, Any]:
         """Prepare data for the HTML template."""
-        stats = scan_results.get('statistics', {})
+        raw_stats = scan_results.get('statistics', {})
+        stats = dict(raw_stats) if isinstance(raw_stats, dict) else {}
+        stats.setdefault('risk_distribution', {'Critical': 0, 'High': 0, 'Medium': 0, 'Low': 0})
+        stats.setdefault('file_sources', {})
+        stats.setdefault('total_js_files', len(scan_results.get('js_files', [])))
+        stats.setdefault('total_errors', len(scan_results.get('errors', [])))
+        stats.setdefault('average_file_size', 0)
+
+        # Calculate secret_types from secrets list if not present
+        if 'secret_types' not in stats:
+            secret_types = {}
+            for s in scan_results.get('secrets', []):
+                st = s.get('type') or s.get('rule_id') or 'Generic Secret'
+                secret_types[st] = secret_types.get(st, 0) + 1
+            stats['secret_types'] = secret_types
         
         # Calculate summary data
         summary = self._calculate_summary(scan_results)
@@ -231,7 +245,7 @@ class HTMLReportGenerator:
         secrets = scan_results.get('secrets', [])
         endpoints = scan_results.get('endpoints', [])
         
-        html = f"""
+        doc_html = f"""
 <!DOCTYPE html>
 <html>
 <head>
@@ -252,11 +266,11 @@ class HTMLReportGenerator:
 <body>
     <div class="header">
         <h1>JSEye Security Report</h1>
-        <p>Target: {html.escape(str(target))}</p>
+        <p>Target: {html_lib.escape(str(target))}</p>
         <p>Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
     </div>
     
-    {f'<div class="section"><h2>Template Error</h2><p>{html.escape(str(error_msg))}</p></div>' if error_msg else ''}
+    {f'<div class="section"><h2>Template Error</h2><p>{html_lib.escape(str(error_msg))}</p></div>' if error_msg else ''}
     
     <div class="section">
         <h2>Summary</h2>
@@ -274,20 +288,20 @@ class HTMLReportGenerator:
         
         for secret in secrets[:20]:  # Limit for basic report
             risk_level = secret.get('risk_level', 'Low')
-            s_desc = html.escape(str(secret.get('description', 'Unknown')))
-            s_risk = html.escape(str(risk_level))
-            s_source = html.escape(str(secret.get('source_file', 'Unknown')[:50]))
-            s_val = html.escape(str(secret.get('value_masked', '***')))
-            html += f"""
+            s_desc = html_lib.escape(str(secret.get('description', 'Unknown')))
+            s_risk = html_lib.escape(str(risk_level))
+            s_source = html_lib.escape(str(secret.get('source_file', 'Unknown')[:50]))
+            s_val = html_lib.escape(str(secret.get('value_masked', '***')))
+            doc_html += f"""
             <tr>
                 <td>{s_desc}</td>
-                <td class="{html.escape(risk_level.lower())}">{s_risk}</td>
+                <td class="{html_lib.escape(risk_level.lower())}">{s_risk}</td>
                 <td>{s_source}...</td>
                 <td><code>{s_val}</code></td>
             </tr>
             """
         
-        html += """
+        doc_html += """
         </table>
     </div>
     
@@ -298,9 +312,9 @@ class HTMLReportGenerator:
         
         for endpoint in endpoints[:50]:  # Limit for basic report
             ep_str = endpoint.get('url', str(endpoint)) if isinstance(endpoint, dict) else str(endpoint)
-            html += f"<li>{html.escape(ep_str)}</li>"
+            doc_html += f"<li>{html_lib.escape(ep_str)}</li>"
         
-        html += """
+        doc_html += """
         </ul>
     </div>
     
@@ -311,7 +325,7 @@ class HTMLReportGenerator:
 </html>
         """
         
-        return html
+        return doc_html
     
     def generate_executive_summary(self, scan_results: Dict[str, Any]) -> str:
         """Generate an executive summary HTML report."""
@@ -323,7 +337,7 @@ class HTMLReportGenerator:
         critical_secrets = [s for s in scan_results.get('secrets', []) if s.get('risk_level') == 'Critical']
         high_vulns = [v for v in vulnerabilities if v.get('severity') in ['Critical', 'High']]
         
-        html = f"""
+        doc_html = f"""
 <!DOCTYPE html>
 <html>
 <head>
@@ -349,7 +363,7 @@ class HTMLReportGenerator:
 <body>
     <div class="header">
         <h1>[*] JSEye Executive Summary</h1>
-        <h2>{html.escape(str(target))}</h2>
+        <h2>{html_lib.escape(str(target))}</h2>
         <p>Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
     </div>
     
@@ -378,27 +392,27 @@ class HTMLReportGenerator:
         """
         
         if critical_secrets:
-            html += f"""
+            doc_html += f"""
         <div class="risk-indicator risk-critical">
             <strong>Critical Secret Exposure:</strong> Found {len(critical_secrets)} critical secrets that could provide unauthorized access to systems or data.
         </div>
         """
         
         if high_vulns:
-            html += f"""
+            doc_html += f"""
         <div class="risk-indicator risk-high">
             <strong>High-Risk Vulnerabilities:</strong> Identified {len(high_vulns)} high-severity security issues requiring immediate attention.
         </div>
         """
         
         if summary['total_endpoints_discovered'] > 0:
-            html += f"""
+            doc_html += f"""
         <div class="risk-indicator risk-medium">
             <strong>API Surface Exposure:</strong> Discovered {summary['total_endpoints_discovered']} API endpoints that expand the attack surface.
         </div>
         """
         
-        html += """
+        doc_html += """
     </div>
     
     <div class="section">
@@ -407,12 +421,12 @@ class HTMLReportGenerator:
         """
         
         if critical_secrets:
-            html += "<li><strong>Immediate Action Required:</strong> Rotate all exposed credentials and implement proper secret management.</li>"
+            doc_html += "<li><strong>Immediate Action Required:</strong> Rotate all exposed credentials and implement proper secret management.</li>"
         
         if high_vulns:
-            html += "<li><strong>Security Remediation:</strong> Address high-severity vulnerabilities to reduce attack surface.</li>"
+            doc_html += "<li><strong>Security Remediation:</strong> Address high-severity vulnerabilities to reduce attack surface.</li>"
         
-        html += """
+        doc_html += """
             <li><strong>Code Review:</strong> Implement regular security code reviews for JavaScript files.</li>
             <li><strong>Secret Scanning:</strong> Integrate automated secret scanning into CI/CD pipeline.</li>
             <li><strong>API Security:</strong> Review and secure all discovered API endpoints.</li>
@@ -426,4 +440,4 @@ class HTMLReportGenerator:
 </html>
         """
         
-        return html
+        return doc_html
