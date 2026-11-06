@@ -3,11 +3,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/l3tchupkt/JSEye/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/l3tchupkt/JSEye/ci.yml?branch=main&label=CI&style=flat-square" alt="CI Status" /></a>
-  <a href="https://pypi.org/project/jseye/"><img src="https://img.shields.io/pypi/v/jseye.svg?color=00f5ff&style=flat-square" alt="PyPI Version" /></a>
-  <a href="https://pypi.org/project/jseye/"><img src="https://img.shields.io/badge/python-3.8%20|%203.9%20|%203.10%20|%203.11%20|%203.12%20|%203.13-blue.svg?style=flat-square" alt="Python Compatibility" /></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green.svg?style=flat-square" alt="License: MIT" /></a>
-  <a href="https://github.com/l3tchupkt/JSEye/releases"><img src="https://img.shields.io/github/v/release/l3tchupkt/JSEye?color=00ffc2&style=flat-square" alt="Release" /></a>
+  <a href="https://github.com/l3tchupkt/JSEye/actions/workflows/ci.yml"><img src="https://github.com/l3tchupkt/JSEye/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI Status" /></a>
+  <a href="https://pypi.org/project/jseye/"><img src="https://img.shields.io/pypi/v/jseye.svg" alt="PyPI Version" /></a>
+  <a href="https://pypi.org/project/jseye/"><img src="https://img.shields.io/pypi/pyversions/jseye.svg" alt="Python Versions" /></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT" /></a>
+  <a href="https://github.com/l3tchupkt/JSEye/releases"><img src="https://img.shields.io/github/v/release/l3tchupkt/JSEye" alt="Release" /></a>
 </p>
 
 <p align="center">
