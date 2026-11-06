@@ -183,7 +183,7 @@ class SwaggerDetector:
             if isinstance(res, dict) and res.get("found"):
                 found.append(res)
 
-        logger.info("Swagger detection: %d spec(s) found on %s", len(found), base_url)
+        logger.info(f"Swagger detection: {len(found)} spec(s) found on {base_url}")
         return found
 
     async def discover_and_extract(self, base_url: str) -> Dict[str, Any]:

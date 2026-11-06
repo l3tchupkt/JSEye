@@ -1,8 +1,8 @@
 import asyncio
 
-from ..core.ast_engine import JSASTAnalyzer
-from ..core.logging import get_logger
-from .base import (
+from jseye.core.ast_engine import JSASTAnalyzer
+from jseye.core.logging import get_logger
+from jseye.plugins.base import (
     BasePlugin,
     PluginCategory,
     PluginContext,
@@ -18,7 +18,7 @@ class ASTAnalysisPlugin(BasePlugin):
     def __init__(self):
         super().__init__()
         self._metadata = PluginMetadata(
-            name="ASTAnalysisPlugin",
+            name="ast_analysis",
             version="1.0.0",
             category=PluginCategory.ANALYSIS,
             risk_weight=0.8,

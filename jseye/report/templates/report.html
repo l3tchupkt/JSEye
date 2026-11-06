@@ -796,7 +796,7 @@
                 <div class="stats-grid">
                     <div class="stat-item">
                         <h4>File Sources</h4>
-                        {% for source, count in statistics.file_sources.items() %}
+                        {% for source, count in (statistics.file_sources or {}).items() %}
                         <div style="display: flex; justify-content: space-between; margin: 8px 0; font-size: 0.9em;">
                             <span style="color: var(--text-muted);">{{ source.title() }}:</span>
                             <span style="font-weight: 600;">{{ count }}</span>
@@ -805,7 +805,7 @@
                     </div>
                     <div class="stat-item">
                         <h4>Secret Types</h4>
-                        {% for secret_type, count in statistics.secret_types.items() %}
+                        {% for secret_type, count in (statistics.secret_types or {}).items() %}
                         <div style="display: flex; justify-content: space-between; margin: 8px 0; font-size: 0.9em;">
                             <span style="color: var(--text-muted);">{{ secret_type.replace('_', ' ').title() }}:</span>
                             <span style="font-weight: 600;">{{ count }}</span>

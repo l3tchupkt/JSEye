@@ -1056,6 +1056,12 @@ class PluginBasedCrawler:
             if risk_level in stats['risk_distribution']:
                 stats['risk_distribution'][risk_level] += 1
         
+        # Secret type distribution
+        stats['secret_types'] = {}
+        for secret in self.results.get('secrets', []):
+            st = secret.get('type') or secret.get('rule_id') or 'Generic Secret'
+            stats['secret_types'][st] = stats['secret_types'].get(st, 0) + 1
+        
         # Parameter type distribution
         from dataclasses import is_dataclass, asdict
         for param in self.results.get('parameters', []):

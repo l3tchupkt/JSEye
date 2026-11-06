@@ -90,24 +90,49 @@ class JSEyeLogger:
         self.logger.propagate = False
         self._configured = True
     
-    def info(self, message: str, **kwargs):
+    def info(self, message: str, *args, **kwargs):
         """Log info message with optional structured data."""
+        if args:
+            try:
+                message = message % args
+            except Exception:
+                message = f"{message} {' '.join(str(a) for a in args)}"
         self.logger.info(message, extra=kwargs)
     
-    def debug(self, message: str, **kwargs):
+    def debug(self, message: str, *args, **kwargs):
         """Log debug message with optional structured data."""
+        if args:
+            try:
+                message = message % args
+            except Exception:
+                message = f"{message} {' '.join(str(a) for a in args)}"
         self.logger.debug(message, extra=kwargs)
     
-    def warning(self, message: str, **kwargs):
+    def warning(self, message: str, *args, **kwargs):
         """Log warning message with optional structured data."""
+        if args:
+            try:
+                message = message % args
+            except Exception:
+                message = f"{message} {' '.join(str(a) for a in args)}"
         self.logger.warning(message, extra=kwargs)
     
-    def error(self, message: str, **kwargs):
+    def error(self, message: str, *args, **kwargs):
         """Log error message with optional structured data."""
+        if args:
+            try:
+                message = message % args
+            except Exception:
+                message = f"{message} {' '.join(str(a) for a in args)}"
         self.logger.error(message, extra=kwargs)
     
-    def critical(self, message: str, **kwargs):
+    def critical(self, message: str, *args, **kwargs):
         """Log critical message with optional structured data."""
+        if args:
+            try:
+                message = message % args
+            except Exception:
+                message = f"{message} {' '.join(str(a) for a in args)}"
         self.logger.critical(message, extra=kwargs)
     
     def log_operation(self, operation: str, target: str, duration: float, success: bool, **kwargs):
