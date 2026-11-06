@@ -1,8 +1,9 @@
-"""API Intelligence Plugin for JSEye v2.0."""
+"""API Intelligence Plugin for JSEye."""
 
 import asyncio
 from typing import Any, Dict, List
 
+from jseye.version import __version__
 from jseye.core.api_engine import APIIntelligence
 from jseye.core.logging import get_logger
 from jseye.plugins.base import (
@@ -29,7 +30,7 @@ class APIIntelligencePlugin(BasePlugin):
         """Return plugin metadata."""
         return PluginMetadata(
             name="api_intelligence",
-            version="2.0.2",
+            version=__version__,
             category=PluginCategory.INTELLIGENCE,
             risk_weight=0.7,  # Medium-high weight for API vulnerabilities
             description="Analyzes discovered API endpoints for security misconfigurations and vulnerabilities",

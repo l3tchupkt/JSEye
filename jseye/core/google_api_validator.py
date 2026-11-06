@@ -7,6 +7,7 @@ import urllib.request
 from typing import Any, Dict
 
 from .logging import get_logger
+from ..version import __version__
 
 logger = get_logger(__name__)
 
@@ -40,7 +41,7 @@ def validate_google_api_key(api_key: str, timeout: int = 10) -> Dict[str, Any]:
     try:
         req = urllib.request.Request(
             url,
-            headers={"User-Agent": "JSEye/3.0 Google-API-Key-Validator"},
+            headers={"User-Agent": f"JSEye/{__version__} Google-API-Key-Validator"},
         )
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosec B310
             status_code = resp.status

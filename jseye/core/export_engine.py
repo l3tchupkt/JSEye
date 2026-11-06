@@ -1,4 +1,4 @@
-"""Export engine for hunter-friendly automation formats (v3.0)."""
+"""Export engine for hunter-friendly automation formats."""
 
 import csv
 import json
@@ -428,7 +428,7 @@ class ExportEngine:
                             f.write(f"# {idx}. Parameter: {param}\n")
                             f.write(f"# Value: {value}...\n")
                             f.write(f"# URL: {url}\n")
-                            f.write(f"# curl -X GET '{url}' -H 'User-Agent: JSEye/3.0.1' -i -s\n\n")
+                            f.write(f"# curl -X GET '{url}' -H 'User-Agent: JSEye/{__version__}' -i -s\n\n")
                 
                 # 6. Source maps
                 sourcemaps = [f for f in scan_results.get('js_files', []) if f.get('type') == 'sourcemap']
@@ -655,7 +655,7 @@ http:
                 'scan_info': {
                     'target': scan_results.get('target', ''),
                     'scan_time': scan_results.get('scan_metadata', {}).get('start_time', ''),
-                    'jseye_version': scan_results.get('scan_metadata', {}).get('jseye_version', '3.0')
+                    'jseye_version': scan_results.get('scan_metadata', {}).get('jseye_version', __version__)
                 },
                 'actionable_findings': {
                     'critical': [],
@@ -830,7 +830,7 @@ http:
                     # Add request
                     request = ET.SubElement(item, "request")
                     request.set("base64", "false")
-                    request.text = f"GET {parsed.path} HTTP/1.1\nHost: {parsed.netloc}\nUser-Agent: JSEye/2.0.2\n\n"
+                    request.text = f"GET {parsed.path} HTTP/1.1\nHost: {parsed.netloc}\nUser-Agent: JSEye/{__version__}\n\n"
                     
                     # Add response placeholder
                     response = ET.SubElement(item, "response")
@@ -942,7 +942,7 @@ http:
     def _generate_curl_command(self, url: str, method: str = 'GET') -> str:
         """Generate a cURL command for an endpoint."""
         cmd = f"curl -X {method}"
-        cmd += " -H 'User-Agent: JSEye/2.0.2'"
+        cmd += f" -H 'User-Agent: JSEye/{__version__}'"
         cmd += " -H 'Accept: application/json, text/javascript, */*'"
         
         if method in ['POST', 'PUT', 'PATCH']:

@@ -1,4 +1,4 @@
-"""Command-line interface for JSEye v2.1 - Plugin Architecture."""
+"""Command-line interface for JSEye - Plugin Architecture."""
 
 import argparse
 import asyncio
@@ -25,6 +25,7 @@ console = Console()
 def create_parser() -> argparse.ArgumentParser:
     """Create command-line argument parser."""
     parser = argparse.ArgumentParser(
+        prog='jseye',
         description=f'JSEye v{__version__} - JavaScript Intelligence & Attack Surface Discovery Engine',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
@@ -354,7 +355,7 @@ def create_scan_config(args) -> Dict[str, Any]:
         'actionable': getattr(args, 'actionable', False),
         'aggressive_filter': getattr(args, 'aggressive_filter', True),
         'show_all': getattr(args, 'show_all', False),
-        # v3.0.1 recursive + active probing config
+        # Recursive + active probing config
         'max_depth': getattr(args, 'max_depth', None),
         'max_requests': getattr(args, 'max_requests', None),
         'active_probing': active,
@@ -937,10 +938,34 @@ async def main():
     if getattr(args, 'list_plugins', False):
         await list_plugins()
         return
-    
-    # Validate target argument for other operations
+
+    # Handle standalone tool installation
+    if getattr(args, 'install_tools', False) and not args.target:
+        if not args.silent:
+            await print_banner_async()
+            console.print("[cyan][*] Running standalone tool installer & pre-flight verification...[/cyan]")
+        try:
+            from .installer import ToolInstaller
+            from .os_detect import OSDetector
+            installer = ToolInstaller()
+            os_det = OSDetector()
+            all_tools = ['gau', 'waybackurls', 'hakrawler', 'mantra', 'subfinder', 'katana']
+            await installer.check_and_install_python_dependencies()
+            tool_status = {t: os_det.is_tool_installed(t) for t in all_tools}
+            missing_tools = [t for t, ok in tool_status.items() if not ok]
+            if missing_tools:
+                console.print(f"[yellow][!] Installing missing tools: {', '.join(missing_tools)}[/yellow]")
+                await installer.install_external_tools()
+            else:
+                console.print("[green][+] All external tools are already installed and ready![/green]")
+        except Exception as e:
+            console.print(f"[red]Error during tool installation: {e}[/red]")
+            sys.exit(1)
+        return
+
+    # Validate target argument for scan operations
     if not args.target:
-        console.print("[red]Error: target argument is required[/red]")
+        console.print("[bold red]Error:[/bold red] Target domain, URL, or target file is required.\n")
         parser.print_help()
         sys.exit(1)
     

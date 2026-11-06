@@ -1,4 +1,4 @@
-"""ASCII Banner for JSEye v2.0."""
+"""ASCII Banner for JSEye."""
 
 from typing import Optional
 

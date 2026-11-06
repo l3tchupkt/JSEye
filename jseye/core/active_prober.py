@@ -1,5 +1,5 @@
 """
-Active Probing Engine for JSEye v3.0.1.
+Active Probing Engine for JSEye.
 
 Only activated when --active / --intruder-lite / --aggressive flags are set.
 Default mode is PASSIVE.

@@ -1,4 +1,4 @@
-"""Attack Surface Graph Engine for JSEye v2.1."""
+"""Attack Surface Graph Engine for JSEye."""
 
 import json
 from dataclasses import dataclass, field

@@ -1,4 +1,4 @@
-"""Scan Profiling Engine for JSEye v2.1."""
+"""Scan Profiling Engine for JSEye."""
 
 import time
 from dataclasses import dataclass, field

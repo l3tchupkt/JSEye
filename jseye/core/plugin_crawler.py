@@ -1,4 +1,4 @@
-"""Plugin-based crawler for JSEye v2.1."""
+"""Plugin-based crawler for JSEye."""
 
 import asyncio
 import time
@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 
 
 class PluginBasedCrawler:
-    """Enhanced crawler using plugin architecture for JSEye v2.1."""
+    """Enhanced crawler using plugin architecture for JSEye."""
     
     def __init__(self, config: Dict[str, Any]):
         self.config = config
@@ -44,11 +44,11 @@ class PluginBasedCrawler:
         self.verbose = config.get('verbose', False)
         self.debug = config.get('debug', False)
         
-        # New v2.1 features
+        # Core features
         self.enable_profiling = config.get('profile_scan', False)
         self.enable_graph = config.get('generate_graph', False)
         
-        # New v3.0 hunter-focused features
+        # Hunter-focused features
         self.actionable_mode = config.get('actionable', False)
         self.aggressive_filter = config.get('aggressive_filter', True)
         self.show_all = config.get('show_all', False)
@@ -59,13 +59,13 @@ class PluginBasedCrawler:
         self.profiling_engine = ProfilingEngine(enabled=self.enable_profiling)
         self.graph_engine = GraphEngine()
         
-        # Initialize v3.0 engines
+        # Initialize engines
         from .parameter_discovery import ParameterDiscoveryEngine
         from .prioritization import PrioritizationEngine
         self.parameter_engine = ParameterDiscoveryEngine()
         self.prioritization_engine = PrioritizationEngine()
         
-        # New v3.0 core engines (instantiated per target later)
+        # Core engines (instantiated per target later)
         self.scope_engine: Optional[ScopeEngine] = None
         self.dedupe_engine = DedupeEngine()
         self.output_manager = OutputManager(config.get('output_dir'))
@@ -108,7 +108,7 @@ class PluginBasedCrawler:
             # Start profiling
             self.profiling_engine.start_scan_profiling(target)
             
-            logger.info(f"Starting plugin-based scan of {target} (v3.0.1 Autonomous)")
+            logger.info(f"Starting plugin-based scan of {target} (v{__version__} Autonomous)")
             
             # Phase 1: JavaScript Collection
             self.profiling_engine.start_operation('js_collection')
@@ -142,7 +142,7 @@ class PluginBasedCrawler:
             
             self.profiling_engine.end_operation('plugin_execution')
             
-            # Phase 4: Parameter Discovery (v3.0)
+            # Phase 4: Parameter Discovery
             self.profiling_engine.start_operation('parameter_discovery')
             if self.verbose:
                 logger.info("Phase 4: Discovering parameters and endpoints", target=target)
@@ -177,7 +177,7 @@ class PluginBasedCrawler:
                 total_endpoints = len(self.results.get('endpoints', []))
                 console.print(f"[green]  [+] Discovered {total_params} parameters, {total_endpoints} endpoints[/green]")
             
-            # Phase 5: Prioritization and Filtering (v3.0)
+            # Phase 5: Prioritization and Filtering
             self.profiling_engine.start_operation('prioritization')
             if not self.config.get('silent', False):
                 console.print("[cyan]  [*] Prioritizing findings...[/cyan]")
@@ -210,7 +210,7 @@ class PluginBasedCrawler:
             
             self.profiling_engine.end_operation('result_consolidation')
 
-            # Phase 6.5: Active Probing (v3.0.1)
+            # Phase 6.5: Active Probing
             if self.config.get('active_probing', False):
                 self.profiling_engine.start_operation('active_probing')
                 if not self.config.get('silent', False):
@@ -276,7 +276,7 @@ class PluginBasedCrawler:
                        plugins_executed=len(plugin_results),
                        total_findings=len(self.results['all_findings']))
                        
-            # Write structured output (v3.0.1)
+            # Write structured output
             if not self.config.get('silent', False):
                 console.print("\n[cyan][*] Saving structured findings...[/cyan]")
             self.output_manager.persist_all(self.results)
@@ -485,11 +485,11 @@ class PluginBasedCrawler:
         except Exception:
             pass
         
-        # PHASE 4 & 5: Autonomous Recursive Queue (v3.0.1)
+        # PHASE 4 & 5: Autonomous Recursive Queue
         console.print("\n[bold cyan]Phase 4 & 5:[/bold cyan] Autonomous Recursive Crawl")
         if all_urls_to_crawl:
             try:
-                # Initialize the recursive queue with the v3 engines
+                # Initialize the recursive queue
                 queue = RecursiveQueue(
                     scope_engine=self.scope_engine,
                     dedupe_engine=self.dedupe_engine,
