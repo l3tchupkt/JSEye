@@ -1,8 +1,9 @@
-"""DOM Flow Analysis Plugin for JSEye v2.0."""
+"""DOM Flow Analysis Plugin for JSEye."""
 
 import asyncio
 from typing import Any, Dict, List
 
+from jseye.version import __version__
 from jseye.core.dom_flow import DOMFlowAnalyzer
 from jseye.core.logging import get_logger
 from jseye.plugins.base import (
@@ -30,7 +31,7 @@ class DOMFlowPlugin(BasePlugin):
         """Return plugin metadata."""
         return PluginMetadata(
             name="dom_flow_analysis",
-            version="2.0.2",
+            version=__version__,
             category=PluginCategory.ANALYSIS,
             risk_weight=0.8,  # High weight for XSS vulnerabilities
             description="Analyzes DOM-based data flows to detect potential XSS vulnerabilities",

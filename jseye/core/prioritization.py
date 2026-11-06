@@ -1,4 +1,4 @@
-"""Prioritization Engine for JSEye v3.0 - High Signal Mode."""
+"""Prioritization Engine for JSEye - High Signal Mode."""
 
 import re
 from dataclasses import dataclass

@@ -1,4 +1,4 @@
-"""Base plugin architecture for JSEye v2.1."""
+"""Base plugin architecture for JSEye."""
 
 import abc
 import time

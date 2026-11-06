@@ -1,4 +1,4 @@
-"""Plugin manager for JSEye v2.0 - Dynamic plugin loading and execution."""
+"""Plugin manager for JSEye - Dynamic plugin loading and execution."""
 
 import asyncio
 import importlib

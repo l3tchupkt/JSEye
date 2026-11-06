@@ -10,6 +10,7 @@ import json
 import os
 from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin
+from ..version import __version__
 
 try:
     import aiohttp
@@ -128,11 +129,11 @@ class SwaggerDetector:
         self,
         timeout: int = 10,
         max_concurrent: int = 20,
-        user_agent: str = "JSEye/2.1.0 SwaggerDetector",
+        user_agent: Optional[str] = None,
     ) -> None:
         self.timeout = timeout
         self.max_concurrent = max_concurrent
-        self.user_agent = user_agent
+        self.user_agent = user_agent or f"JSEye/{__version__} SwaggerDetector"
         self._session: Optional[Any] = None  # aiohttp.ClientSession
 
     async def __aenter__(self) -> "SwaggerDetector":

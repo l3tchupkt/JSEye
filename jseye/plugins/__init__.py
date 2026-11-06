@@ -1,4 +1,4 @@
-"""Plugin system for JSEye v2.1 - Extensible Intelligence Framework."""
+"""Plugin system for JSEye - Extensible Intelligence Framework."""
 
 from .base import BasePlugin, PluginContext, PluginMetadata, PluginResult
 from .manager import PluginManager

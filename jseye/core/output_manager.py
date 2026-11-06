@@ -1,5 +1,5 @@
 """
-Structured Output Manager for JSEye v3.0.1.
+Structured Output Manager for JSEye.
 
 Creates and populates the output directory:
 

@@ -1,5 +1,6 @@
 import asyncio
 
+from jseye.version import __version__
 from jseye.core.ast_engine import JSASTAnalyzer
 from jseye.core.logging import get_logger
 from jseye.plugins.base import (
@@ -19,7 +20,7 @@ class ASTAnalysisPlugin(BasePlugin):
         super().__init__()
         self._metadata = PluginMetadata(
             name="ast_analysis",
-            version="1.0.0",
+            version=__version__,
             category=PluginCategory.ANALYSIS,
             risk_weight=0.8,
             description="Performs deep Abstract Syntax Tree analysis of JavaScript files to find endpoints and variables.",

@@ -1,8 +1,9 @@
-"""CVE Intelligence Plugin for JSEye v2.0."""
+"""CVE Intelligence Plugin for JSEye."""
 
 import asyncio
 from typing import Any, Dict, List
 
+from jseye.version import __version__
 from jseye.core.cve_engine import CVEIntelligenceEngine
 from jseye.core.logging import get_logger
 from jseye.plugins.base import (
@@ -29,7 +30,7 @@ class CVEIntelligencePlugin(BasePlugin):
         """Return plugin metadata."""
         return PluginMetadata(
             name="cve_intelligence",
-            version="2.0.2",
+            version=__version__,
             category=PluginCategory.INTELLIGENCE,
             risk_weight=0.85,  # High weight for known vulnerabilities
             description="Analyzes JavaScript libraries for known CVE vulnerabilities using free APIs",

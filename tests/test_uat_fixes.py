@@ -9,6 +9,7 @@ Covers:
 
 import pytest
 
+from jseye.version import __version__
 from jseye.cli import create_parser
 from jseye.core.logging import get_logger
 from jseye.plugins.ast_analysis_plugin import ASTAnalysisPlugin
@@ -21,7 +22,7 @@ def test_ast_analysis_plugin_metadata():
     plugin = ASTAnalysisPlugin()
     meta = plugin.metadata
     assert meta.name == "ast_analysis"
-    assert meta.version == "1.0.0"
+    assert meta.version == __version__
     assert meta.category.value == "analysis"
 
 
@@ -117,3 +118,24 @@ def test_cli_flags():
     assert args.install_tools is True
     assert args.no_subs is True
     assert args.active is True
+
+
+def test_cli_prog_and_help_version():
+    """Verify CLI parser prog name is jseye and help contains current version without old markings."""
+    parser = create_parser()
+    assert parser.prog == "jseye"
+    help_text = parser.format_help()
+    assert "usage: jseye" in help_text
+    assert f"JSEye v{__version__}" in help_text
+    assert "3.0.1" not in help_text
+    assert "v2.1" not in help_text
+
+
+@pytest.mark.asyncio
+async def test_all_plugin_versions_match_package():
+    """Verify all built-in plugins have versions synchronized with the package version."""
+    pm = PluginManager()
+    await pm.load_plugins()
+    assert len(pm.plugins) >= 6
+    for name, plugin in pm.plugins.items():
+        assert plugin.metadata.version == __version__, f"Plugin {name} version {plugin.metadata.version} != {__version__}"

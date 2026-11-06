@@ -1,4 +1,4 @@
-"""Advanced Parameter Discovery Engine for JSEye v3.0 - Bug Hunter Edition."""
+"""Advanced Parameter Discovery Engine for JSEye - Bug Hunter Edition."""
 
 import re
 from dataclasses import dataclass

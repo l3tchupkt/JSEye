@@ -33,7 +33,7 @@ class JSONReportGenerator:
             }
         }
         
-        # Add v3.0 prioritization data
+        # Add prioritization data
         if 'prioritized_endpoints' in scan_results:
             report['jseye_report']['prioritized_endpoints'] = scan_results['prioritized_endpoints']
         

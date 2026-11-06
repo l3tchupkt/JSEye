@@ -1,7 +1,9 @@
-"""Secret Detection Plugin for JSEye v2.0."""
+"""Secret Detection Plugin for JSEye."""
 
 import asyncio
 from typing import Any, Dict, List
+
+from jseye.version import __version__
 
 from jseye.core.logging import get_logger
 from jseye.core.secret_engine import SecretDetector
@@ -30,7 +32,7 @@ class SecretDetectionPlugin(BasePlugin):
         """Return plugin metadata."""
         return PluginMetadata(
             name="secret_detection",
-            version="2.0.2",
+            version=__version__,
             category=PluginCategory.DETECTION,
             risk_weight=0.9,  # High weight for secrets
             description="Detects hardcoded secrets, API keys, and credentials in JavaScript files",

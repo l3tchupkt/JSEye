@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 import aiohttp
 
 from .logging import get_logger
+from ..version import __version__
 
 logger = get_logger(__name__)
 
@@ -112,7 +113,7 @@ class CVEIntelligenceEngine:
             timeout=self.timeout,
             connector=connector,
             headers={
-                'User-Agent': 'JSEye/2.0.2 Security Scanner'
+                'User-Agent': f'JSEye/{__version__} Security Scanner'
             }
         )
         return self

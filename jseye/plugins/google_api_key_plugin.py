@@ -3,6 +3,8 @@
 import asyncio
 from typing import Any, Dict, List
 
+from jseye.version import __version__
+
 from jseye.core.google_api_validator import (
     extract_google_api_keys,
     validate_google_api_key,
@@ -37,7 +39,7 @@ class GoogleAPIKeyPlugin(BasePlugin):
     def metadata(self) -> PluginMetadata:
         return PluginMetadata(
             name="google_api_key_validator",
-            version="1.0.0",
+            version=__version__,
             category=PluginCategory.DETECTION,
             risk_weight=0.9,
             description=(

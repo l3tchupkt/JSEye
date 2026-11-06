@@ -1,5 +1,5 @@
 """
-Global Deduplication Engine for JSEye v3.0.1.
+Global Deduplication Engine for JSEye.
 
 Prevents duplicate URL processing, response body replay, and
 infinite pagination loops throughout the recursive crawl.
